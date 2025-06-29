@@ -5,8 +5,7 @@ Domino Tracker is a web-based scoreboard for recording domino matches. Open
 
 ## Features
 - **Single or team play** – score one-on-one games or 2‑vs‑2 team matches.
-- **Best of series** – play a single game or choose a best of 3 or best of 5
-  match.
+- **First to series** – play a single game or choose a first to 3 or first to 5 match.
 - **PETAROLL rule** – if a team wins 75‑0 or reaches 150 while the other team
   has less than 75, it counts as two wins.
 - **Live scoring** with quick add/subtract buttons and undo support.

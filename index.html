@@ -393,8 +393,8 @@
                         <label class="block text-sm font-medium mb-2">Match Length</label>
                         <select id="bestOfSelect" class="w-full p-3 border rounded-lg">
                             <option value="1">Single Game</option>
-                            <option value="3">Best of 3</option>
-                            <option value="5">Best of 5</option>
+                            <option value="3">First to 3</option>
+                            <option value="5">First to 5</option>
                         </select>
                     </div>
                     
@@ -1610,11 +1610,11 @@
                 matchWins2 += 2;
             }
             updateMatchScoreDisplay();
-            const requiredWins = Math.ceil(bestOf / 2);
+            const requiredWins = bestOf;
             let seriesInfo = `<div class="mt-2">Series Score: ${matchWins1} - ${matchWins2}</div>`;
             if (matchWins1 >= requiredWins || matchWins2 >= requiredWins) {
                 matchOver = true;
-                seriesInfo += `<div class="mt-2 font-bold">${winnerName} wins the best of ${bestOf}!</div>`;
+                seriesInfo += `<div class="mt-2 font-bold">${winnerName} wins first to ${bestOf}!</div>`;
                 document.getElementById('playAgainBtn').classList.add('hidden');
             } else {
                 document.getElementById('playAgainBtn').classList.remove('hidden');
@@ -1712,11 +1712,11 @@
                 matchWins2++;
             }
             updateMatchScoreDisplay();
-            const requiredWins = Math.ceil(bestOf / 2);
+            const requiredWins = bestOf;
             let seriesInfo = `<div class="mt-2">Series Score: ${matchWins1} - ${matchWins2}</div>`;
             if (matchWins1 >= requiredWins || matchWins2 >= requiredWins) {
                 matchOver = true;
-                seriesInfo += `<div class="mt-2 font-bold">${winnerName} wins the best of ${bestOf}!</div>`;
+                seriesInfo += `<div class="mt-2 font-bold">${winnerName} wins first to ${bestOf}!</div>`;
                 document.getElementById('playAgainBtn').classList.add('hidden');
             } else {
                 document.getElementById('playAgainBtn').classList.remove('hidden');
