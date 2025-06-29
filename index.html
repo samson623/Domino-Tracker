@@ -495,6 +495,23 @@
                         </div>
                     </div>
 
+                    <!-- Turn Timer -->
+                    <div class="domino-card p-6 mt-6 text-center">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium mb-2">Turn Time Limit (seconds, max 60)</label>
+                            <input type="number" id="turnTimeInput" class="w-24 p-2 border rounded-lg" min="5" max="60" value="60">
+                        </div>
+                        <div class="mb-4 text-3xl font-bold" id="turnTimerDisplay">--</div>
+                        <div class="flex justify-center space-x-4">
+                            <button onclick="startTurnTimer()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-lg">
+                                <i class="fas fa-play mr-2"></i>Start Timer
+                            </button>
+                            <button onclick="stopTurnTimer()" class="bg-red-500 hover:bg-red-600 text-white py-2 px-6 rounded-lg">
+                                <i class="fas fa-stop mr-2"></i>Stop
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Score History -->
                     <div class="domino-card p-6 mt-6">
                         <h3 class="text-lg font-bold mb-4">Score History</h3>
@@ -695,6 +712,8 @@
         let matchWins1 = 0;
         let matchWins2 = 0;
         let matchOver = false;
+        let turnTimer = null;
+        let remainingTime = 0;
         let achievements = JSON.parse(localStorage.getItem('dominoAchievements')) || {};
         const achievementDefinitions = {
             tenWins: '🏅 Ten Wins',
@@ -1187,6 +1206,7 @@
             matchWins1 = 0;
             matchWins2 = 0;
             matchOver = false;
+            stopTurnTimer();
 
             if (currentGameMode === 'team') {
                 const team1Id = document.getElementById('team1Select').value;
@@ -1756,7 +1776,9 @@
                 currentGame.history = [];
                 currentGame.ended = false;
                 document.getElementById('petarollAlert').classList.add('hidden');
-                
+
+                stopTurnTimer();
+
                 // Clear custom score inputs
                 document.getElementById('customScore1').value = '';
                 document.getElementById('customScore2').value = '';
@@ -1772,6 +1794,7 @@
             matchWins1 = 0;
             matchWins2 = 0;
             matchOver = false;
+            stopTurnTimer();
             updateMatchScoreDisplay();
             document.getElementById('gameSetup').classList.add('hidden');
             document.getElementById('liveGame').classList.add('hidden');
@@ -2166,6 +2189,38 @@
                     }
                 }
             });
+        }
+
+        function startTurnTimer() {
+            let input = parseInt(document.getElementById('turnTimeInput').value);
+            if (!input || input <= 0) input = 60;
+            input = Math.min(input, 60);
+            remainingTime = input;
+            updateTurnTimerDisplay();
+            stopTurnTimer();
+            turnTimer = setInterval(() => {
+                remainingTime--;
+                updateTurnTimerDisplay();
+                if (remainingTime <= 0) {
+                    stopTurnTimer();
+                    alert("Time's up!");
+                }
+            }, 1000);
+        }
+
+        function stopTurnTimer() {
+            if (turnTimer) {
+                clearInterval(turnTimer);
+                turnTimer = null;
+            }
+            remainingTime = 0;
+            const display = document.getElementById('turnTimerDisplay');
+            if (display) display.textContent = '--';
+        }
+
+        function updateTurnTimerDisplay() {
+            const display = document.getElementById('turnTimerDisplay');
+            if (display) display.textContent = remainingTime + 's';
         }
 
         function filterGamesByPeriod(games, period) {
