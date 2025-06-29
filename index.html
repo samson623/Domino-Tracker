@@ -169,6 +169,31 @@
         .custom-score-input {
             -moz-appearance: textfield;
         }
+
+        .achievement-badge {
+            background: linear-gradient(45deg, #34D399, #10B981);
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        #achievementToast {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #10B981;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
@@ -279,6 +304,17 @@
                         Recent Games
                     </h3>
                     <div id="recentGames" class="space-y-2">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+
+                <!-- Achievements -->
+                <div class="domino-card p-6">
+                    <h3 class="text-lg font-bold mb-4 flex items-center">
+                        <i class="fas fa-award mr-2 text-green-500"></i>
+                        Achievements
+                    </h3>
+                    <div id="achievementsList" class="space-y-1 text-sm">
                         <!-- Dynamic content -->
                     </div>
                 </div>
@@ -644,6 +680,8 @@
         </div>
     </div>
 
+    <div id="achievementToast" class="hidden"></div>
+
     <script>
         // Global variables
         let currentGame = null;
@@ -657,6 +695,11 @@
         let matchWins1 = 0;
         let matchWins2 = 0;
         let matchOver = false;
+        let achievements = JSON.parse(localStorage.getItem('dominoAchievements')) || {};
+        const achievementDefinitions = {
+            tenWins: '🏅 Ten Wins',
+            firstPetaroll: '🔥 First PETAROLL'
+        };
 
         // Theme management
         function initTheme() {
@@ -726,10 +769,12 @@
             // Clear all data from localStorage
             localStorage.removeItem('dominoTeams');
             localStorage.removeItem('dominoGames');
+            localStorage.removeItem('dominoAchievements');
             
             // Reset global variables
             teams = [];
             games = [];
+            achievements = {};
             currentGame = null;
             
             // Destroy all chart instances
@@ -794,6 +839,7 @@
             loadDailyTeamStats();
             loadRecentGames();
             loadDailyTeamChart();
+            loadAchievements();
         }
 
         function loadDailyTeamStats() {
@@ -900,6 +946,40 @@
             }).join('');
             
             document.getElementById('recentGames').innerHTML = recentHtml || '<p class="text-gray-500 dark:text-gray-400 text-sm">No recent games</p>';
+        }
+
+        function loadAchievements() {
+            const listEl = document.getElementById('achievementsList');
+            const unlocked = Object.keys(achievements).filter(key => achievements[key]);
+            const html = unlocked.map(key => `<span class="achievement-badge">${achievementDefinitions[key]}</span>`).join('');
+            listEl.innerHTML = html || '<p class="text-gray-500 dark:text-gray-400">No achievements yet</p>';
+        }
+
+        function checkAchievements() {
+            const totalWins = games.reduce((sum, g) => sum + (g.gameValue || 1), 0);
+            let updated = false;
+            if (totalWins >= 10 && !achievements.tenWins) {
+                achievements.tenWins = true;
+                showAchievement('Achievement Unlocked: ' + achievementDefinitions.tenWins);
+                updated = true;
+            }
+            const hasPetaroll = games.some(g => g.isPetaroll);
+            if (hasPetaroll && !achievements.firstPetaroll) {
+                achievements.firstPetaroll = true;
+                showAchievement('Achievement Unlocked: ' + achievementDefinitions.firstPetaroll);
+                updated = true;
+            }
+            if (updated) {
+                localStorage.setItem('dominoAchievements', JSON.stringify(achievements));
+                loadAchievements();
+            }
+        }
+
+        function showAchievement(message) {
+            const toast = document.getElementById('achievementToast');
+            toast.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
         }
 
         function loadHistory() {
@@ -1447,6 +1527,7 @@
                 
                 games.push(gameRecord);
                 localStorage.setItem('dominoGames', JSON.stringify(games));
+                checkAchievements();
 
                 winnerName = `${winner.player1} & ${winner.player2}`;
                 loserName = `${loser.player1} & ${loser.player2}`;
@@ -1498,6 +1579,7 @@
                 
                 games.push(gameRecord);
                 localStorage.setItem('dominoGames', JSON.stringify(games));
+                checkAchievements();
 
                 let messageHtml = `
                     <div class="text-3xl font-bold text-orange-600 mb-4">🔥 PETAROLL! 🔥</div>
@@ -1621,6 +1703,7 @@
             
             games.push(gameRecord);
             localStorage.setItem('dominoGames', JSON.stringify(games));
+            checkAchievements();
 
             // Update match series
             if (currentGame.score1 > currentGame.score2) {
