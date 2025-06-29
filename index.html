@@ -972,22 +972,39 @@
         function loadAchievements() {
             const listEl = document.getElementById('achievementsList');
             const unlocked = Object.keys(achievements).filter(key => achievements[key]);
-            const html = unlocked.map(key => `<span class="achievement-badge">${achievementDefinitions[key]}</span>`).join('');
+            const html = unlocked.map(key => {
+                const value = achievements[key];
+                const winner = value && typeof value === 'object' ? ` - ${value.winner}` : '';
+                return `<span class="achievement-badge">${achievementDefinitions[key]}${winner}</span>`;
+            }).join('');
             listEl.innerHTML = html || '<p class="text-gray-500 dark:text-gray-400">No achievements yet</p>';
+        }
+
+        function getWinnerName(game) {
+            if (!game) return 'Unknown';
+            if (game.gameMode === 'single') {
+                return game.winner;
+            } else {
+                const team = teams.find(t => t.id === game.winner);
+                return team ? `${team.player1} & ${team.player2}` : 'Unknown';
+            }
         }
 
         function checkAchievements() {
             const totalWins = games.reduce((sum, g) => sum + (g.gameValue || 1), 0);
             let updated = false;
+            const lastGame = games[games.length - 1];
             if (totalWins >= 10 && !achievements.tenWins) {
-                achievements.tenWins = true;
-                showAchievement('Achievement Unlocked: ' + achievementDefinitions.tenWins);
+                const winnerName = getWinnerName(lastGame);
+                achievements.tenWins = { winner: winnerName };
+                showAchievement('Achievement Unlocked: ' + achievementDefinitions.tenWins + ' - ' + winnerName);
                 updated = true;
             }
-            const hasPetaroll = games.some(g => g.isPetaroll);
-            if (hasPetaroll && !achievements.firstPetaroll) {
-                achievements.firstPetaroll = true;
-                showAchievement('Achievement Unlocked: ' + achievementDefinitions.firstPetaroll);
+            const firstPetarollGame = games.find(g => g.isPetaroll);
+            if (firstPetarollGame && !achievements.firstPetaroll) {
+                const winnerName = getWinnerName(firstPetarollGame);
+                achievements.firstPetaroll = { winner: winnerName };
+                showAchievement('Achievement Unlocked: ' + achievementDefinitions.firstPetaroll + ' - ' + winnerName);
                 updated = true;
             }
             if (updated) {

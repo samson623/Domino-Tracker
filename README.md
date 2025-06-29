@@ -12,7 +12,7 @@ Domino Tracker is a web-based scoreboard for recording domino matches. Open
 - **Leaderboard and history** pages to review past results and player
   statistics.
 - **Achievements** to unlock badges for milestones like 10 wins or the first
-  PETAROLL.
+  PETAROLL, showing who earned each achievement.
 - **Dark mode** toggle.
 - **Local storage** – all data is saved in your browser and can be exported or
   reset at any time.
