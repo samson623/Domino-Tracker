@@ -351,6 +351,16 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Best Of Selection -->
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium mb-2">Match Length</label>
+                        <select id="bestOfSelect" class="w-full p-3 border rounded-lg">
+                            <option value="1">Single Game</option>
+                            <option value="3">Best of 3</option>
+                            <option value="5">Best of 5</option>
+                        </select>
+                    </div>
                     
                     <button onclick="startGame()" class="w-full mt-6 bg-green-500 hover:bg-green-600 text-white py-3 px-6 rounded-lg font-bold text-lg">
                         <i class="fas fa-flag-checkered mr-2"></i>Start Game to 150!
@@ -365,6 +375,9 @@
                             <i class="fas fa-fire mr-2"></i>PETAROLL ALERT! Game will end at 75-0!<i class="fas fa-fire ml-2"></i>
                         </p>
                     </div>
+
+                    <!-- Match Score -->
+                    <div id="matchScore" class="text-center font-bold text-lg mb-4"></div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <!-- Team 1 Score -->
@@ -587,7 +600,7 @@
             <h2 class="text-2xl font-bold mb-4">Game Over!</h2>
             <div id="winMessage" class="text-lg mb-6"></div>
             <div class="flex space-x-4 justify-center">
-                <button onclick="playAgain()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded-lg font-medium">
+                <button id="playAgainBtn" onclick="playAgain()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded-lg font-medium">
                     <i class="fas fa-play mr-2"></i>Play Again
                 </button>
                 <button onclick="closeWinModal()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-medium">
@@ -640,6 +653,10 @@
         let currentSection = 'home';
         let chartInstances = {};
         let currentPeriod = 'daily';
+        let bestOf = 1;
+        let matchWins1 = 0;
+        let matchWins2 = 0;
+        let matchOver = false;
 
         // Theme management
         function initTheme() {
@@ -1086,6 +1103,11 @@
         }
 
         function startGame() {
+            bestOf = parseInt(document.getElementById('bestOfSelect').value);
+            matchWins1 = 0;
+            matchWins2 = 0;
+            matchOver = false;
+
             if (currentGameMode === 'team') {
                 const team1Id = document.getElementById('team1Select').value;
                 const team2Id = document.getElementById('team2Select').value;
@@ -1149,6 +1171,7 @@
             
             enableScoreButtons();
             updateGameDisplay();
+            updateMatchScoreDisplay();
         }
 
         function updateGameDisplay() {
@@ -1196,6 +1219,13 @@
                 `;
             }).join('');
             document.getElementById('scoreHistory').innerHTML = historyHtml;
+        }
+
+        function updateMatchScoreDisplay() {
+            const display = document.getElementById('matchScore');
+            if (display) {
+                display.textContent = `Match Score: ${matchWins1} - ${matchWins2}`;
+            }
         }
 
         // Add custom score function
@@ -1417,12 +1447,11 @@
                 
                 games.push(gameRecord);
                 localStorage.setItem('dominoGames', JSON.stringify(games));
-                
-                // Show PETAROLL win modal with who got PETAROLLED and how many times
-                const winnerName = `${winner.player1} & ${winner.player2}`;
-                const loserName = `${loser.player1} & ${loser.player2}`;
-                
-                document.getElementById('winMessage').innerHTML = `
+
+                winnerName = `${winner.player1} & ${winner.player2}`;
+                loserName = `${loser.player1} & ${loser.player2}`;
+
+                let messageHtml = `
                     <div class="text-3xl font-bold text-orange-600 mb-4">🔥 PETAROLL! 🔥</div>
                     <div class="text-xl mb-2">
                         <strong>${winnerName}</strong>
@@ -1441,10 +1470,11 @@
                         <span class="petaroll-badge text-xl">This counts as 2 WINS!</span>
                     </div>
                 `;
+                document.getElementById('winMessage').innerHTML = messageHtml;
             } else {
                 // Single player mode
-                const winnerName = currentGame.score1 > currentGame.score2 ? currentGame.player1 : currentGame.player2;
-                const loserName = currentGame.score1 > currentGame.score2 ? currentGame.player2 : currentGame.player1;
+                winnerName = currentGame.score1 > currentGame.score2 ? currentGame.player1 : currentGame.player2;
+                loserName = currentGame.score1 > currentGame.score2 ? currentGame.player2 : currentGame.player1;
                 winnerScore = currentGame.score1 > currentGame.score2 ? currentGame.score1 : currentGame.score2;
                 loserScore = currentGame.score1 > currentGame.score2 ? currentGame.score2 : currentGame.score1;
                 
@@ -1468,8 +1498,8 @@
                 
                 games.push(gameRecord);
                 localStorage.setItem('dominoGames', JSON.stringify(games));
-                
-                document.getElementById('winMessage').innerHTML = `
+
+                let messageHtml = `
                     <div class="text-3xl font-bold text-orange-600 mb-4">🔥 PETAROLL! 🔥</div>
                     <div class="text-xl mb-2">
                         <strong>${winnerName}</strong>
@@ -1488,8 +1518,27 @@
                         <span class="petaroll-badge text-xl">This counts as 2 WINS!</span>
                     </div>
                 `;
+                document.getElementById('winMessage').innerHTML = messageHtml;
             }
-            
+
+            // Update match series
+            if (currentGame.score1 > currentGame.score2) {
+                matchWins1 += 2; // Petaroll counts as two wins
+            } else {
+                matchWins2 += 2;
+            }
+            updateMatchScoreDisplay();
+            const requiredWins = Math.ceil(bestOf / 2);
+            let seriesInfo = `<div class="mt-2">Series Score: ${matchWins1} - ${matchWins2}</div>`;
+            if (matchWins1 >= requiredWins || matchWins2 >= requiredWins) {
+                matchOver = true;
+                seriesInfo += `<div class="mt-2 font-bold">${winnerName} wins the best of ${bestOf}!</div>`;
+                document.getElementById('playAgainBtn').classList.add('hidden');
+            } else {
+                document.getElementById('playAgainBtn').classList.remove('hidden');
+            }
+            document.getElementById('winMessage').innerHTML += seriesInfo;
+
             // Refresh all data displays
             refreshAllData();
             
@@ -1519,16 +1568,20 @@
 
         function declareWinner() {
             if (!currentGame) return;
-            
+
             currentGame.ended = true;
-            
+
             let gameRecord;
+            let winnerName;
+            let loserName;
+            let winnerScore;
+            let loserScore;
             
             if (currentGame.gameMode === 'team') {
                 const winner = currentGame.score1 >= 150 ? currentGame.team1 : currentGame.team2;
                 const loser = currentGame.score1 >= 150 ? currentGame.team2 : currentGame.team1;
-                const winnerScore = currentGame.score1 >= 150 ? currentGame.score1 : currentGame.score2;
-                const loserScore = currentGame.score1 >= 150 ? currentGame.score2 : currentGame.score1;
+                winnerScore = currentGame.score1 >= 150 ? currentGame.score1 : currentGame.score2;
+                loserScore = currentGame.score1 >= 150 ? currentGame.score2 : currentGame.score1;
                 
                 gameRecord = {
                     id: Date.now(),
@@ -1543,17 +1596,14 @@
                     gameValue: 1
                 };
                 
-                const winnerName = `${winner.player1} & ${winner.player2}`;
-                document.getElementById('winMessage').innerHTML = `
-                    <strong>${winnerName}</strong> wins!<br>
-                    Final Score: ${winnerScore} - ${loserScore}
-                `;
+                winnerName = `${winner.player1} & ${winner.player2}`;
+                loserName = `${loser.player1} & ${loser.player2}`;
             } else {
                 // Single player mode
-                const winnerName = currentGame.score1 >= 150 ? currentGame.player1 : currentGame.player2;
-                const loserName = currentGame.score1 >= 150 ? currentGame.player2 : currentGame.player1;
-                const winnerScore = currentGame.score1 >= 150 ? currentGame.score1 : currentGame.score2;
-                const loserScore = currentGame.score1 >= 150 ? currentGame.score2 : currentGame.score1;
+                winnerName = currentGame.score1 >= 150 ? currentGame.player1 : currentGame.player2;
+                loserName = currentGame.score1 >= 150 ? currentGame.player2 : currentGame.player1;
+                winnerScore = currentGame.score1 >= 150 ? currentGame.score1 : currentGame.score2;
+                loserScore = currentGame.score1 >= 150 ? currentGame.score2 : currentGame.score1;
                 
                 gameRecord = {
                     id: Date.now(),
@@ -1567,15 +1617,31 @@
                     isPetaroll: false,
                     gameValue: 1
                 };
-                
-                document.getElementById('winMessage').innerHTML = `
-                    <strong>${winnerName}</strong> wins!<br>
-                    Final Score: ${winnerScore} - ${loserScore}
-                `;
             }
             
             games.push(gameRecord);
             localStorage.setItem('dominoGames', JSON.stringify(games));
+
+            // Update match series
+            if (currentGame.score1 > currentGame.score2) {
+                matchWins1++;
+            } else {
+                matchWins2++;
+            }
+            updateMatchScoreDisplay();
+            const requiredWins = Math.ceil(bestOf / 2);
+            let seriesInfo = `<div class="mt-2">Series Score: ${matchWins1} - ${matchWins2}</div>`;
+            if (matchWins1 >= requiredWins || matchWins2 >= requiredWins) {
+                matchOver = true;
+                seriesInfo += `<div class="mt-2 font-bold">${winnerName} wins the best of ${bestOf}!</div>`;
+                document.getElementById('playAgainBtn').classList.add('hidden');
+            } else {
+                document.getElementById('playAgainBtn').classList.remove('hidden');
+            }
+            document.getElementById('winMessage').innerHTML = `
+                <strong>${winnerName}</strong> wins!<br>
+                Final Score: ${winnerScore} - ${loserScore}
+            ` + seriesInfo;
             
             // Refresh all data displays
             refreshAllData();
@@ -1587,8 +1653,13 @@
         }
 
         function playAgain() {
-            resetGame();
-            closeWinModal();
+            if (matchOver) {
+                closeWinModal();
+                endGame();
+            } else {
+                resetGame();
+                closeWinModal();
+            }
         }
 
         function closeWinModal() {
@@ -1615,6 +1686,10 @@
         function endGame() {
             currentGame = null;
             currentGameMode = null;
+            matchWins1 = 0;
+            matchWins2 = 0;
+            matchOver = false;
+            updateMatchScoreDisplay();
             document.getElementById('gameSetup').classList.add('hidden');
             document.getElementById('liveGame').classList.add('hidden');
             document.getElementById('scoreHistory').innerHTML = '';
