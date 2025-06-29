@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         /* Dark mode base styles */
         .dark {
@@ -1517,6 +1518,8 @@
         // New function specifically for PETAROLL
         function declarePetaroll() {
             if (!currentGame) return;
+
+            playPetarollEffects();
             
             currentGame.ended = true;
             
@@ -1555,6 +1558,7 @@
 
                 let messageHtml = `
                     <div class="text-3xl font-bold text-orange-600 mb-4">🔥 PETAROLL! 🔥</div>
+                    <div class="text-lg font-bold mb-2">PETAROLL PETAROLL!</div>
                     <div class="text-xl mb-2">
                         <strong>${winnerName}</strong>
                     </div>
@@ -1604,6 +1608,7 @@
 
                 let messageHtml = `
                     <div class="text-3xl font-bold text-orange-600 mb-4">🔥 PETAROLL! 🔥</div>
+                    <div class="text-lg font-bold mb-2">PETAROLL PETAROLL!</div>
                     <div class="text-xl mb-2">
                         <strong>${winnerName}</strong>
                     </div>
@@ -1671,6 +1676,8 @@
 
         function declareWinner() {
             if (!currentGame) return;
+
+            playEndGameSound();
 
             currentGame.ended = true;
 
@@ -2280,6 +2287,52 @@
             } catch (e) {
                 // Silently fail if audio doesn't work
             }
+        }
+
+        // Play a short ding when the game ends
+        function playEndGameSound() {
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE');
+                audio.play();
+            } catch (e) {
+                // Ignore errors
+            }
+        }
+
+        // Trigger fireworks and announce PETAROLL
+        function playPetarollEffects() {
+            playEndGameSound();
+            try {
+                const utter = new SpeechSynthesisUtterance('PETAROLL PETAROLL');
+                speechSynthesis.speak(utter);
+            } catch (e) {
+                // Ignore speech errors
+            }
+            showFireworks();
+        }
+
+        // Simple fireworks effect using canvas-confetti
+        function showFireworks() {
+            if (typeof confetti !== 'function') return;
+            const duration = 2000;
+            const end = Date.now() + duration;
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 }
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 }
+                });
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            })();
         }
 
         function filterGamesByPeriod(games, period) {
