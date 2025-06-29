@@ -2192,12 +2192,14 @@
         }
 
         function startTurnTimer() {
+            // Clear any existing timer before starting a new one
+            stopTurnTimer();
+
             let input = parseInt(document.getElementById('turnTimeInput').value);
             if (!input || input <= 0) input = 60;
             input = Math.min(input, 60);
             remainingTime = input;
             updateTurnTimerDisplay();
-            stopTurnTimer();
             turnTimer = setInterval(() => {
                 remainingTime--;
                 updateTurnTimerDisplay();
