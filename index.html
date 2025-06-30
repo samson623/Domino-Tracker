@@ -593,13 +593,13 @@
                     <button onclick="showLeaderboard('daily')" class="leaderboard-tab bg-blue-500 text-white py-2 px-4 rounded-lg font-medium">
                         <i class="fas fa-calendar-day mr-1"></i>Daily
                     </button>
-                    <button onclick="showLeaderboard('weekly')" class="leaderboard-tab bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg font-medium">
+                    <button onclick="showLeaderboard('weekly')" class="leaderboard-tab bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 px-4 rounded-lg font-medium">
                         <i class="fas fa-calendar-week mr-1"></i>Weekly
                     </button>
-                    <button onclick="showLeaderboard('monthly')" class="leaderboard-tab bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg font-medium">
+                    <button onclick="showLeaderboard('monthly')" class="leaderboard-tab bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 px-4 rounded-lg font-medium">
                         <i class="fas fa-calendar-alt mr-1"></i>Monthly
                     </button>
-                    <button onclick="showLeaderboard('alltime')" class="leaderboard-tab bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg font-medium">
+                    <button onclick="showLeaderboard('alltime')" class="leaderboard-tab bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 px-4 rounded-lg font-medium">
                         <i class="fas fa-infinity mr-1"></i>All Time
                     </button>
                 </div>
@@ -1957,10 +1957,10 @@
             // Update tab states
             document.querySelectorAll('.leaderboard-tab').forEach(tab => {
                 tab.classList.remove('bg-blue-500', 'text-white');
-                tab.classList.add('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+                tab.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
             });
-            
-            document.querySelector(`[onclick="showLeaderboard('${period}')"]`).classList.remove('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+
+            document.querySelector(`[onclick="showLeaderboard('${period}')"]`).classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
             document.querySelector(`[onclick="showLeaderboard('${period}')"]`).classList.add('bg-blue-500', 'text-white');
             
             // Ensure we have the latest data
