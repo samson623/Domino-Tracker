@@ -138,8 +138,17 @@
         .game-item:hover .delete-game-btn {
             opacity: 1;
         }
-        
+
         .delete-game-btn {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .game-item:hover .edit-game-btn {
+            opacity: 1;
+        }
+
+        .edit-game-btn {
             opacity: 0;
             transition: opacity 0.2s;
         }
@@ -152,6 +161,11 @@
             background-color: #3B82F6;
             color: white;
             transform: scale(1.05);
+        }
+
+        .nav-btn.active, .mobile-nav-btn.active {
+            background-color: rgba(255, 255, 255, 0.3);
+            color: #3B82F6;
         }
         
         /* Custom score input styles */
@@ -217,19 +231,19 @@
                     <i class="fas fa-moon" id="themeIcon"></i>
                 </button>
                 <div class="hidden md:flex space-x-2">
-                    <button onclick="showSection('home')" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
+                    <button onclick="showSection('home')" data-section="home" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
                         <i class="fas fa-home mr-1"></i>Home
                     </button>
-                    <button onclick="showSection('live')" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
+                    <button onclick="showSection('live')" data-section="live" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
                         <i class="fas fa-play mr-1"></i>Live Game
                     </button>
-                    <button onclick="showSection('teams')" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
+                    <button onclick="showSection('teams')" data-section="teams" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
                         <i class="fas fa-users mr-1"></i>Teams
                     </button>
-                    <button onclick="showSection('leaderboard')" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
+                    <button onclick="showSection('leaderboard')" data-section="leaderboard" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
                         <i class="fas fa-trophy mr-1"></i>Leaderboard
                     </button>
-                    <button onclick="showSection('history')" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
+                    <button onclick="showSection('history')" data-section="history" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
                         <i class="fas fa-list mr-1"></i>History
                     </button>
                 </div>
@@ -240,23 +254,23 @@
     <!-- Mobile Navigation -->
     <div class="md:hidden bg-white dark:bg-gray-800 border-t dark:border-gray-700 fixed bottom-0 left-0 right-0 z-50">
         <div class="flex justify-around py-2">
-            <button onclick="showSection('home')" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
+            <button onclick="showSection('home')" data-section="home" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
                 <i class="fas fa-home text-lg"></i>
                 <span class="text-xs">Home</span>
             </button>
-            <button onclick="showSection('live')" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
+            <button onclick="showSection('live')" data-section="live" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
                 <i class="fas fa-play text-lg"></i>
                 <span class="text-xs">Live</span>
             </button>
-            <button onclick="showSection('teams')" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
+            <button onclick="showSection('teams')" data-section="teams" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
                 <i class="fas fa-users text-lg"></i>
                 <span class="text-xs">Teams</span>
             </button>
-            <button onclick="showSection('leaderboard')" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
+            <button onclick="showSection('leaderboard')" data-section="leaderboard" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
                 <i class="fas fa-trophy text-lg"></i>
                 <span class="text-xs">Stats</span>
             </button>
-            <button onclick="showSection('history')" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
+            <button onclick="showSection('history')" data-section="history" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
                 <i class="fas fa-list text-lg"></i>
                 <span class="text-xs">History</span>
             </button>
@@ -699,6 +713,18 @@
         </div>
     </div>
 
+    <!-- Edit Game Modal -->
+    <div id="editGameModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="domino-card p-6 m-4 max-w-md w-full">
+            <h2 class="text-xl font-bold mb-4">Edit Game</h2>
+            <div id="editGameForm" class="space-y-4"></div>
+            <div class="flex justify-end space-x-2 mt-4">
+                <button onclick="saveGameEdits()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium">Save</button>
+                <button onclick="closeEditGameModal()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg font-medium">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <div id="achievementToast" class="hidden"></div>
 
     <script>
@@ -716,6 +742,7 @@
         let matchOver = false;
         let turnTimer = null;
         let remainingTime = 0;
+        let editingGameId = null;
         let achievements = JSON.parse(localStorage.getItem('dominoAchievements')) || {};
         const achievementDefinitions = {
             tenWins: '🏅 Ten Wins',
@@ -822,7 +849,10 @@
             
             // Update navigation states
             document.querySelectorAll('.nav-btn, .mobile-nav-btn').forEach(btn => {
-                btn.classList.remove('bg-white', 'bg-opacity-30', 'text-blue-500');
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll(`[data-section="${section}"]`).forEach(btn => {
+                btn.classList.add('active');
             });
             
             if (section === 'home') loadHome();
@@ -1047,6 +1077,9 @@
                 
                 return `
                     <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg game-item relative">
+                        <button onclick="showEditGameModal('${game.id}')" class="edit-game-btn absolute top-2 right-10 text-blue-500 hover:text-blue-700 p-2">
+                            <i class="fas fa-edit"></i>
+                        </button>
                         <button onclick="deleteGame('${game.id}')" class="delete-game-btn absolute top-2 right-2 text-red-500 hover:text-red-700 p-2">
                             <i class="fas fa-trash"></i>
                         </button>
@@ -1082,12 +1115,79 @@
             if (confirm('Are you sure you want to delete this game? This will affect all statistics.')) {
                 games = games.filter(g => g.id != gameId);
                 localStorage.setItem('dominoGames', JSON.stringify(games));
-                
+
                 // Reload all sections that might be affected
                 refreshAllData();
-                
+
                 alert('Game deleted successfully!');
             }
+        }
+
+        function showEditGameModal(gameId) {
+            const game = games.find(g => g.id == gameId);
+            if (!game) return;
+            editingGameId = gameId;
+
+            let formHtml = '';
+            if (game.gameMode === 'team') {
+                const options = teams.map(t => `<option value="${t.id}">${t.player1} & ${t.player2}</option>`).join('');
+                formHtml += `
+                    <label class="block text-sm font-medium">Winner</label>
+                    <select id="editWinner" class="w-full p-2 border rounded-lg mb-2">${options}</select>
+                    <label class="block text-sm font-medium">Loser</label>
+                    <select id="editLoser" class="w-full p-2 border rounded-lg mb-2">${options}</select>
+                `;
+            } else {
+                formHtml += `
+                    <label class="block text-sm font-medium">Winner</label>
+                    <input id="editWinner" type="text" class="w-full p-2 border rounded-lg mb-2" />
+                    <label class="block text-sm font-medium">Loser</label>
+                    <input id="editLoser" type="text" class="w-full p-2 border rounded-lg mb-2" />
+                `;
+            }
+
+            formHtml += `
+                <label class="block text-sm font-medium">Winner Score</label>
+                <input id="editWinnerScore" type="number" class="w-full p-2 border rounded-lg mb-2" />
+                <label class="block text-sm font-medium">Loser Score</label>
+                <input id="editLoserScore" type="number" class="w-full p-2 border rounded-lg mb-2" />
+                <label class="inline-flex items-center mt-2"><input type="checkbox" id="editIsPetaroll" class="mr-2">PETAROLL</label>
+            `;
+
+            document.getElementById('editGameForm').innerHTML = formHtml;
+
+            document.getElementById('editWinner').value = game.winner;
+            document.getElementById('editLoser').value = game.loser;
+            document.getElementById('editWinnerScore').value = game.winnerScore;
+            document.getElementById('editLoserScore').value = game.loserScore;
+            document.getElementById('editIsPetaroll').checked = !!game.isPetaroll;
+
+            document.getElementById('editGameModal').classList.remove('hidden');
+        }
+
+        function closeEditGameModal() {
+            document.getElementById('editGameModal').classList.add('hidden');
+            editingGameId = null;
+        }
+
+        function saveGameEdits() {
+            if (editingGameId === null) return;
+            const game = games.find(g => g.id == editingGameId);
+            if (!game) return;
+
+            const winnerVal = document.getElementById('editWinner').value;
+            const loserVal = document.getElementById('editLoser').value;
+            game.winner = game.gameMode === 'team' ? parseInt(winnerVal) : winnerVal;
+            game.loser = game.gameMode === 'team' ? parseInt(loserVal) : loserVal;
+            game.winnerScore = parseInt(document.getElementById('editWinnerScore').value) || 0;
+            game.loserScore = parseInt(document.getElementById('editLoserScore').value) || 0;
+            game.isPetaroll = document.getElementById('editIsPetaroll').checked;
+            game.gameValue = game.isPetaroll ? 2 : 1;
+
+            localStorage.setItem('dominoGames', JSON.stringify(games));
+            closeEditGameModal();
+
+            refreshAllData();
         }
 
         function loadDailyTeamChart() {
