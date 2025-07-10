@@ -2477,6 +2477,7 @@
 
         // Voice recognition setup
         let recognition;
+        let pendingVoiceAction = null;
         function initVoice() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
@@ -2515,6 +2516,27 @@
                 btn.classList.add('bg-purple-500');
                 btn.innerHTML = '<i class="fas fa-microphone mr-2"></i>Voice';
             }
+        }
+
+        function showVoiceConfirmation(message, action) {
+            pendingVoiceAction = action;
+            const output = document.getElementById('voiceOutput');
+            if (!output) return;
+            output.innerHTML = `
+                ${message}
+                <div class="mt-2">
+                    <button id="confirmVoiceAction" class="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded mr-2">Confirm</button>
+                    <button id="cancelVoiceAction" class="bg-gray-500 hover:bg-gray-600 text-white py-1 px-3 rounded">Cancel</button>
+                </div>`;
+            document.getElementById('confirmVoiceAction').onclick = () => {
+                if (pendingVoiceAction) pendingVoiceAction();
+                pendingVoiceAction = null;
+                output.textContent = '';
+            };
+            document.getElementById('cancelVoiceAction').onclick = () => {
+                pendingVoiceAction = null;
+                output.textContent = '';
+            };
         }
 
         function parseNumberFromText(str) {
@@ -2563,14 +2585,36 @@
             }
             let m;
             m = text.match(/team (?:1|one|a) add ([a-z0-9-\s]+)/);
-            if (m) { addScore(1, parseNumberFromText(m[1])); return; }
+            if (m) {
+                const val = parseNumberFromText(m[1]);
+                showVoiceConfirmation(`Add ${val} to Team 1?`, () => addScore(1, val));
+                return;
+            }
             m = text.match(/team (?:2|two|b) add ([a-z0-9-\s]+)/);
-            if (m) { addScore(2, parseNumberFromText(m[1])); return; }
+            if (m) {
+                const val = parseNumberFromText(m[1]);
+                showVoiceConfirmation(`Add ${val} to Team 2?`, () => addScore(2, val));
+                return;
+            }
+            m = text.match(/blue ([a-z0-9-\s]+)/);
+            if (m) {
+                const val = parseNumberFromText(m[1]);
+                showVoiceConfirmation(`Add ${val} to Blue?`, () => addScore(1, val));
+                return;
+            }
+            m = text.match(/red ([a-z0-9-\s]+)/);
+            if (m) {
+                const val = parseNumberFromText(m[1]);
+                showVoiceConfirmation(`Add ${val} to Red?`, () => addScore(2, val));
+                return;
+            }
             if (text.includes('undo team one') || text.includes('undo team 1') || text.includes('undo team a')) {
-                undoScore(1); return;
+                showVoiceConfirmation('Undo last Team 1 score?', () => undoScore(1));
+                return;
             }
             if (text.includes('undo team two') || text.includes('undo team 2') || text.includes('undo team b')) {
-                undoScore(2); return;
+                showVoiceConfirmation('Undo last Team 2 score?', () => undoScore(2));
+                return;
             }
             if (text.includes('end game')) { endGame(); return; }
             if (text.includes('reset game')) { resetGame(); return; }
