@@ -508,7 +508,11 @@
                             <button onclick="resetGame()" class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-6 rounded-lg">
                                 <i class="fas fa-sync mr-2"></i>Reset
                             </button>
+                              <button id="micBtn" onclick="toggleMic()" class="bg-purple-500 hover:bg-purple-600 text-white py-2 px-6 rounded-lg">
+                                  <i class="fas fa-microphone mr-2"></i>Voice
+                              </button>
                         </div>
+                            <div id="voiceOutput" class="mt-2 text-sm text-gray-600 dark:text-gray-300"></div>
                     </div>
 
                     <!-- Turn Timer -->
@@ -2471,9 +2475,84 @@
             }
         }
 
+        // Voice recognition setup
+        let recognition;
+        function initVoice() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                console.warn('SpeechRecognition not supported');
+                return;
+            }
+            recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.onresult = (e) => {
+                const transcript = e.results[0][0].transcript;
+                const output = document.getElementById('voiceOutput');
+                if (output) output.textContent = transcript;
+                parseVoiceCommand(transcript);
+            };
+            recognition.onend = () => {
+                const btn = document.getElementById('micBtn');
+                if (btn && btn.classList.contains('bg-green-600')) {
+                    toggleMic(false);
+                }
+            };
+        }
+
+        function toggleMic(start) {
+            if (!recognition) return;
+            const btn = document.getElementById('micBtn');
+            const begin = start !== undefined ? start : !btn.classList.contains('bg-green-600');
+            if (begin) {
+                recognition.start();
+                btn.classList.remove('bg-purple-500');
+                btn.classList.add('bg-green-600');
+                btn.innerHTML = '<i class="fas fa-microphone mr-2"></i>Listening';
+            } else {
+                recognition.stop();
+                btn.classList.remove('bg-green-600');
+                btn.classList.add('bg-purple-500');
+                btn.innerHTML = '<i class="fas fa-microphone mr-2"></i>Voice';
+            }
+        }
+
+        function parseVoiceCommand(text) {
+            text = text.toLowerCase();
+            const beat = text.match(/(.+) beat (.+) (\d+) to (\d+)/);
+            if (beat) {
+                const score1 = parseInt(beat[3], 10);
+                const score2 = parseInt(beat[4], 10);
+                if (currentGame) {
+                    currentGame.score1 = score1;
+                    currentGame.score2 = score2;
+                    updateGameDisplay();
+                    if (score1 >= 150 || score2 >= 150) {
+                        setTimeout(declareWinner, 500);
+                    }
+                }
+                return;
+            }
+            let m;
+            m = text.match(/team (?:1|one|a) add (\d+)/);
+            if (m) { addScore(1, parseInt(m[1], 10)); return; }
+            m = text.match(/team (?:2|two|b) add (\d+)/);
+            if (m) { addScore(2, parseInt(m[1], 10)); return; }
+            if (text.includes('undo team one') || text.includes('undo team 1') || text.includes('undo team a')) {
+                undoScore(1); return;
+            }
+            if (text.includes('undo team two') || text.includes('undo team 2') || text.includes('undo team b')) {
+                undoScore(2); return;
+            }
+            if (text.includes('end game')) { endGame(); return; }
+            if (text.includes('reset game')) { resetGame(); return; }
+            if (text.includes('dark mode')) { document.getElementById('themeToggle').click(); return; }
+        }
+
         // Initialize app
         function initApp() {
             initTheme();
+            initVoice();
             showSection('home');
         }
 
