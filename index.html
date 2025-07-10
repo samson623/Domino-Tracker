@@ -2517,12 +2517,40 @@
             }
         }
 
+        function parseNumberFromText(str) {
+            const direct = parseInt(str, 10);
+            if (!isNaN(direct)) return direct;
+
+            const words = str.trim().split(/[\s-]+/);
+            const map = {
+                zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5,
+                six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+                eleven: 11, twelve: 12, thirteen: 13, fourteen: 14,
+                fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18,
+                nineteen: 19, twenty: 20, thirty: 30, forty: 40,
+                fifty: 50, sixty: 60, seventy: 70, eighty: 80,
+                ninety: 90, hundred: 100
+            };
+
+            let total = 0;
+            let current = 0;
+            words.forEach(w => {
+                if (w === 'hundred') {
+                    current *= 100;
+                } else if (map[w] !== undefined) {
+                    current += map[w];
+                }
+            });
+            total += current;
+            return total;
+        }
+
         function parseVoiceCommand(text) {
             text = text.toLowerCase();
-            const beat = text.match(/(.+) beat (.+) (\d+) to (\d+)/);
+            const beat = text.match(/(.+) beat (.+) ([a-z0-9-\s]+) to ([a-z0-9-\s]+)/);
             if (beat) {
-                const score1 = parseInt(beat[3], 10);
-                const score2 = parseInt(beat[4], 10);
+                const score1 = parseNumberFromText(beat[3]);
+                const score2 = parseNumberFromText(beat[4]);
                 if (currentGame) {
                     currentGame.score1 = score1;
                     currentGame.score2 = score2;
@@ -2534,10 +2562,10 @@
                 return;
             }
             let m;
-            m = text.match(/team (?:1|one|a) add (\d+)/);
-            if (m) { addScore(1, parseInt(m[1], 10)); return; }
-            m = text.match(/team (?:2|two|b) add (\d+)/);
-            if (m) { addScore(2, parseInt(m[1], 10)); return; }
+            m = text.match(/team (?:1|one|a) add ([a-z0-9-\s]+)/);
+            if (m) { addScore(1, parseNumberFromText(m[1])); return; }
+            m = text.match(/team (?:2|two|b) add ([a-z0-9-\s]+)/);
+            if (m) { addScore(2, parseNumberFromText(m[1])); return; }
             if (text.includes('undo team one') || text.includes('undo team 1') || text.includes('undo team a')) {
                 undoScore(1); return;
             }
