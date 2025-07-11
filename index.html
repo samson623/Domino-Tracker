@@ -237,6 +237,9 @@
                     <button onclick="showSection('live')" data-section="live" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
                         <i class="fas fa-play mr-1"></i>Live Game
                     </button>
+                    <button onclick="showSection('players')" data-section="players" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
+                        <i class="fas fa-user-plus mr-1"></i>Players
+                    </button>
                     <button onclick="showSection('teams')" data-section="teams" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
                         <i class="fas fa-users mr-1"></i>Teams
                     </button>
@@ -261,6 +264,10 @@
             <button onclick="showSection('live')" data-section="live" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
                 <i class="fas fa-play text-lg"></i>
                 <span class="text-xs">Live</span>
+            </button>
+             <button onclick="showSection('players')" data-section="players" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
+                <i class="fas fa-user-plus text-lg"></i>
+                <span class="text-xs">Players</span>
             </button>
             <button onclick="showSection('teams')" data-section="teams" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
                 <i class="fas fa-users text-lg"></i>
@@ -302,8 +309,8 @@
                         <button onclick="startNewGame()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-medium">
                             <i class="fas fa-play mr-2"></i>Start New Game
                         </button>
-                        <button onclick="showSection('teams')" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-medium">
-                            <i class="fas fa-plus mr-2"></i>Create Team
+                        <button onclick="showSection('players')" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-medium">
+                            <i class="fas fa-user-plus mr-2"></i>Add Player
                         </button>
                     </div>
                     <div class="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900 rounded-lg">
@@ -374,18 +381,34 @@
                     
                     <!-- Team Mode Setup -->
                     <div id="teamModeSetup" class="hidden">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Team 1</label>
-                                <select id="team1Select" class="w-full p-3 border rounded-lg">
-                                    <option value="">Select Team 1</option>
-                                </select>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                            <!-- Team 1 -->
+                            <div class="p-4 border rounded-lg">
+                                <h4 class="font-bold mb-2 text-center">Team 1</h4>
+                                <div class="space-y-2">
+                                    <div>
+                                        <label class="block text-xs font-medium mb-1">Player 1</label>
+                                        <select id="team1Player1Select" class="w-full p-2 border rounded-lg"></select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium mb-1">Player 2</label>
+                                        <select id="team1Player2Select" class="w-full p-2 border rounded-lg"></select>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Team 2</label>
-                                <select id="team2Select" class="w-full p-3 border rounded-lg">
-                                    <option value="">Select Team 2</option>
-                                </select>
+                            <!-- Team 2 -->
+                             <div class="p-4 border rounded-lg">
+                                <h4 class="font-bold mb-2 text-center">Team 2</h4>
+                                <div class="space-y-2">
+                                    <div>
+                                        <label class="block text-xs font-medium mb-1">Player 1</label>
+                                        <select id="team2Player1Select" class="w-full p-2 border rounded-lg"></select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium mb-1">Player 2</label>
+                                        <select id="team2Player2Select" class="w-full p-2 border rounded-lg"></select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -394,12 +417,16 @@
                     <div id="singleModeSetup" class="hidden">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-medium mb-2">Player 1 Name</label>
-                                <input type="text" id="player1Input" class="w-full p-3 border rounded-lg" placeholder="Enter player 1 name">
+                                <label class="block text-sm font-medium mb-2">Player 1</label>
+                                <select id="singlePlayer1Select" class="w-full p-3 border rounded-lg">
+                                    <option value="">Select Player 1</option>
+                                </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium mb-2">Player 2 Name</label>
-                                <input type="text" id="player2Input" class="w-full p-3 border rounded-lg" placeholder="Enter player 2 name">
+                                <label class="block text-sm font-medium mb-2">Player 2</label>
+                                <select id="singlePlayer2Select" class="w-full p-3 border rounded-lg">
+                                    <option value="">Select Player 2</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -553,6 +580,37 @@
             </div>
         </div>
 
+        <!-- Players Section -->
+        <div id="playersSection" class="section hidden">
+            <div class="mb-6">
+                <button onclick="showCreatePlayerForm()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-lg font-medium">
+                    <i class="fas fa-user-plus mr-2"></i>Add New Player
+                </button>
+            </div>
+
+            <!-- Create Player Form -->
+            <div id="createPlayerForm" class="domino-card p-6 mb-6 hidden">
+                <h3 class="text-xl font-bold mb-4">Add New Player</h3>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Player Name</label>
+                    <input type="text" id="newPlayerName" class="w-full p-3 border rounded-lg" placeholder="Enter player name">
+                </div>
+                <div class="flex space-x-4 mt-6">
+                    <button onclick="createPlayer()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded-lg font-medium">
+                        <i class="fas fa-save mr-2"></i>Save Player
+                    </button>
+                    <button onclick="hideCreatePlayerForm()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-medium">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Players List -->
+            <div id="playersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+
         <!-- Teams Section -->
         <div id="teamsSection" class="section hidden">
             <div class="mb-6">
@@ -566,12 +624,16 @@
                 <h3 class="text-xl font-bold mb-4">Create New Team</h3>
                 <div class="grid grid-cols-1 gap-4">
                     <div>
-                        <label class="block text-sm font-medium mb-2">Player 1 Name</label>
-                        <input type="text" id="player1Name" class="w-full p-3 border rounded-lg" placeholder="Enter player 1 name">
+                        <label class="block text-sm font-medium mb-2">Player 1</label>
+                        <select id="teamPlayer1Select" class="w-full p-3 border rounded-lg">
+                            <option value="">Select Player 1</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium mb-2">Player 2 Name</label>
-                        <input type="text" id="player2Name" class="w-full p-3 border rounded-lg" placeholder="Enter player 2 name">
+                        <label class="block text-sm font-medium mb-2">Player 2</label>
+                        <select id="teamPlayer2Select" class="w-full p-3 border rounded-lg">
+                           <option value="">Select Player 2</option>
+                        </select>
                     </div>
                 </div>
                 <div class="flex space-x-4 mt-6">
@@ -698,7 +760,7 @@
         <div class="domino-card p-8 m-4 max-w-md w-full text-center">
             <div class="text-6xl mb-4 text-red-500">⚠️</div>
             <h2 class="text-2xl font-bold mb-4">Reset All Data?</h2>
-            <p class="text-lg mb-6">This will permanently delete all teams, games, and statistics. This action cannot be undone!</p>
+            <p class="text-lg mb-6">This will permanently delete all players, teams, games, and statistics. This action cannot be undone!</p>
             <div class="flex space-x-4 justify-center">
                 <button onclick="resetAllData()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium">
                     <i class="fas fa-trash-alt mr-2"></i>Yes, Reset Everything
@@ -715,7 +777,7 @@
         <div class="domino-card p-8 m-4 max-w-md w-full text-center">
             <div class="text-6xl mb-4">💾</div>
             <h2 class="text-2xl font-bold mb-4">Export Data</h2>
-            <p class="text-lg mb-6">Download a backup of all your teams and game data.</p>
+            <p class="text-lg mb-6">Download a backup of all your players, teams and game data.</p>
             <div class="flex space-x-4 justify-center">
                 <button onclick="exportData()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg font-medium">
                     <i class="fas fa-download mr-2"></i>Download Backup
@@ -745,6 +807,7 @@
         // Global variables
         let currentGame = null;
         let currentGameMode = null;
+        let players = JSON.parse(localStorage.getItem('dominoPlayers')) || [];
         let teams = JSON.parse(localStorage.getItem('dominoTeams')) || [];
         let games = JSON.parse(localStorage.getItem('dominoGames')) || [];
         let currentSection = 'home';
@@ -800,10 +863,11 @@
 
         function exportData() {
             const data = {
+                players: players,
                 teams: teams,
                 games: games,
                 exportDate: new Date().toISOString(),
-                version: '1.0'
+                version: '1.1' // Updated version
             };
             
             const dataStr = JSON.stringify(data, null, 2);
@@ -830,11 +894,13 @@
 
         function resetAllData() {
             // Clear all data from localStorage
+            localStorage.removeItem('dominoPlayers');
             localStorage.removeItem('dominoTeams');
             localStorage.removeItem('dominoGames');
             localStorage.removeItem('dominoAchievements');
             
             // Reset global variables
+            players = [];
             teams = [];
             games = [];
             achievements = {};
@@ -871,6 +937,7 @@
             });
             
             if (section === 'home') loadHome();
+            else if (section === 'players') loadPlayers();
             else if (section === 'teams') loadTeams();
             else if (section === 'leaderboard') loadLeaderboard();
             else if (section === 'live') loadLiveSection();
@@ -892,6 +959,10 @@
             // If we're on the teams page, reload it
             if (currentSection === 'teams') {
                 loadTeams();
+            }
+             // If we're on the players page, reload it
+            if (currentSection === 'players') {
+                loadPlayers();
             }
             
             // If we're on the leaderboard page, reload it
@@ -1153,11 +1224,12 @@
                     <select id="editLoser" class="w-full p-2 border rounded-lg mb-2">${options}</select>
                 `;
             } else {
-                formHtml += `
+                const options = players.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+                 formHtml += `
                     <label class="block text-sm font-medium">Winner</label>
-                    <input id="editWinner" type="text" class="w-full p-2 border rounded-lg mb-2" />
+                    <select id="editWinner" class="w-full p-2 border rounded-lg mb-2">${options}</select>
                     <label class="block text-sm font-medium">Loser</label>
-                    <input id="editLoser" type="text" class="w-full p-2 border rounded-lg mb-2" />
+                    <select id="editLoser" class="w-full p-2 border rounded-lg mb-2">${options}</select>
                 `;
             }
 
@@ -1187,13 +1259,15 @@
 
         function saveGameEdits() {
             if (editingGameId === null) return;
-            const game = games.find(g => g.id == editingGameId);
-            if (!game) return;
+            const gameIndex = games.findIndex(g => g.id == editingGameId);
+            if (gameIndex === -1) return;
 
+            const game = games[gameIndex];
             const winnerVal = document.getElementById('editWinner').value;
             const loserVal = document.getElementById('editLoser').value;
-            game.winner = game.gameMode === 'team' ? parseInt(winnerVal) : winnerVal;
-            game.loser = game.gameMode === 'team' ? parseInt(loserVal) : loserVal;
+            
+            game.winner = game.gameMode === 'team' ? winnerVal : winnerVal;
+            game.loser = game.gameMode === 'team' ? loserVal : loserVal;
             game.winnerScore = parseInt(document.getElementById('editWinnerScore').value) || 0;
             game.loserScore = parseInt(document.getElementById('editLoserScore').value) || 0;
             game.isPetaroll = document.getElementById('editIsPetaroll').checked;
@@ -1307,33 +1381,73 @@
                 document.getElementById('teamModeBtn').classList.add('active');
                 document.getElementById('teamModeSetup').classList.remove('hidden');
                 document.getElementById('singleModeSetup').classList.add('hidden');
-                populateTeamSelects();
+                populatePlayerSelectsForTeamGame();
             } else {
                 document.getElementById('singleModeBtn').classList.add('active');
                 document.getElementById('teamModeSetup').classList.add('hidden');
                 document.getElementById('singleModeSetup').classList.remove('hidden');
+                populatePlayerSelectsForSingleGame();
             }
             
             document.getElementById('gameSetup').classList.remove('hidden');
         }
 
-        function populateTeamSelects() {
-            const team1Select = document.getElementById('team1Select');
-            const team2Select = document.getElementById('team2Select');
+        function populatePlayerSelectsForTeamGame() {
+            const selects = [
+                document.getElementById('team1Player1Select'),
+                document.getElementById('team1Player2Select'),
+                document.getElementById('team2Player1Select'),
+                document.getElementById('team2Player2Select')
+            ];
+
+            const optionsHtml = '<option value="">Select Player</option>' + players.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+
+            selects.forEach(select => {
+                select.innerHTML = optionsHtml;
+            });
+        }
+        
+        function populatePlayerSelectsForSingleGame() {
+            const player1Select = document.getElementById('singlePlayer1Select');
+            const player2Select = document.getElementById('singlePlayer2Select');
             
-            team1Select.innerHTML = '<option value="">Select Team 1</option>';
-            team2Select.innerHTML = '<option value="">Select Team 2</option>';
+            player1Select.innerHTML = '<option value="">Select Player 1</option>';
+            player2Select.innerHTML = '<option value="">Select Player 2</option>';
             
-            teams.forEach(team => {
-                const teamDisplay = `${team.player1} & ${team.player2}`;
-                team1Select.innerHTML += `<option value="${team.id}">${teamDisplay}</option>`;
-                team2Select.innerHTML += `<option value="${team.id}">${teamDisplay}</option>`;
+            players.forEach(player => {
+                player1Select.innerHTML += `<option value="${player.name}">${player.name}</option>`;
+                player2Select.innerHTML += `<option value="${player.name}">${player.name}</option>`;
             });
         }
 
         function startNewGame() {
             showSection('live');
         }
+
+        function findOrCreateTeam(player1Name, player2Name) {
+            // Sort names to handle (A,B) and (B,A) as the same team
+            const sortedNames = [player1Name, player2Name].sort();
+            const p1 = sortedNames[0];
+            const p2 = sortedNames[1];
+
+            let team = teams.find(t => t.player1 === p1 && t.player2 === p2);
+
+            if (team) {
+                return team; // Found existing team
+            } else {
+                // Create a new team if it doesn't exist
+                const newTeam = {
+                    id: Date.now().toString(),
+                    player1: p1,
+                    player2: p2,
+                    created: new Date().toISOString()
+                };
+                teams.push(newTeam);
+                localStorage.setItem('dominoTeams', JSON.stringify(teams));
+                return newTeam;
+            }
+        }
+
 
         function startGame() {
             bestOf = parseInt(document.getElementById('bestOfSelect').value);
@@ -1343,21 +1457,24 @@
             stopTurnTimer();
 
             if (currentGameMode === 'team') {
-                const team1Id = document.getElementById('team1Select').value;
-                const team2Id = document.getElementById('team2Select').value;
+                const p1_1 = document.getElementById('team1Player1Select').value;
+                const p1_2 = document.getElementById('team1Player2Select').value;
+                const p2_1 = document.getElementById('team2Player1Select').value;
+                const p2_2 = document.getElementById('team2Player2Select').value;
                 
-                if (!team1Id || !team2Id) {
-                    alert('Please select both teams');
+                const allPlayers = [p1_1, p1_2, p2_1, p2_2];
+                if (allPlayers.some(p => !p)) {
+                    alert('Please select all four players.');
+                    return;
+                }
+
+                if (new Set(allPlayers).size !== 4) {
+                    alert('Each player must be unique. Please select four different players.');
                     return;
                 }
                 
-                if (team1Id === team2Id) {
-                    alert('Please select different teams');
-                    return;
-                }
-                
-                const team1 = teams.find(t => t.id === team1Id);
-                const team2 = teams.find(t => t.id === team2Id);
+                const team1 = findOrCreateTeam(p1_1, p1_2);
+                const team2 = findOrCreateTeam(p2_1, p2_2);
                 
                 currentGame = {
                     gameMode: 'team',
@@ -1372,12 +1489,17 @@
                 
                 document.getElementById('team1Players').textContent = `${team1.player1} & ${team1.player2}`;
                 document.getElementById('team2Players').textContent = `${team2.player1} & ${team2.player2}`;
-            } else {
-                const player1Name = document.getElementById('player1Input').value.trim();
-                const player2Name = document.getElementById('player2Input').value.trim();
+
+            } else { // Single mode
+                const player1Name = document.getElementById('singlePlayer1Select').value;
+                const player2Name = document.getElementById('singlePlayer2Select').value;
                 
                 if (!player1Name || !player2Name) {
-                    alert('Please enter both player names');
+                    alert('Please select both players');
+                    return;
+                }
+                 if (player1Name === player2Name) {
+                    alert('Please select different players');
                     return;
                 }
                 
@@ -1799,7 +1921,7 @@
 
         // Function to disable all score buttons
         function disableScoreButtons() {
-            const buttons = document.querySelectorAll('.score-btn');
+            const buttons = document.querySelectorAll('.score-btn, .custom-score-input, .flex.justify-center.items-center button');
             buttons.forEach(button => {
                 button.disabled = true;
                 button.classList.add('opacity-50', 'cursor-not-allowed');
@@ -1808,7 +1930,7 @@
 
         // Function to enable all score buttons
         function enableScoreButtons() {
-            const buttons = document.querySelectorAll('.score-btn');
+            const buttons = document.querySelectorAll('.score-btn, .custom-score-input, .flex.justify-center.items-center button');
             buttons.forEach(button => {
                 button.disabled = false;
                 button.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -1955,14 +2077,87 @@
             hideFinalScoreConfirmation();
             
             // Clear input fields
-            document.getElementById('player1Input').value = '';
-            document.getElementById('player2Input').value = '';
             document.getElementById('customScore1').value = '';
             document.getElementById('customScore2').value = '';
             
             // Reset to game mode selection
             loadLiveSection();
         }
+        
+        // Players Section
+        function loadPlayers() {
+            const playersHtml = players.map(player => `
+                <div class="domino-card p-4 flex justify-between items-center">
+                    <span class="font-medium text-lg">${player.name}</span>
+                    <button onclick="deletePlayer('${player.id}')" class="text-red-500 hover:text-red-700">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+            document.getElementById('playersList').innerHTML = playersHtml || '<div class="col-span-full text-center text-gray-500 dark:text-gray-400">No players created yet</div>';
+        }
+
+        function showCreatePlayerForm() {
+            document.getElementById('createPlayerForm').classList.remove('hidden');
+        }
+
+        function hideCreatePlayerForm() {
+            document.getElementById('createPlayerForm').classList.add('hidden');
+            document.getElementById('newPlayerName').value = '';
+        }
+
+        function createPlayer() {
+            const playerNameInput = document.getElementById('newPlayerName');
+            const playerName = playerNameInput.value.trim();
+
+            if (!playerName) {
+                alert('Player name cannot be empty.');
+                return;
+            }
+
+            const isDuplicate = players.some(p => p.name.toLowerCase() === playerName.toLowerCase());
+            if (isDuplicate) {
+                alert('A player with this name already exists.');
+                return;
+            }
+
+            const newPlayer = {
+                id: Date.now().toString(),
+                name: playerName
+            };
+
+            players.push(newPlayer);
+            localStorage.setItem('dominoPlayers', JSON.stringify(players));
+            
+            hideCreatePlayerForm();
+            loadPlayers();
+            updateAllPlayerDropdowns();
+        }
+
+        function deletePlayer(playerId) {
+            const playerToDelete = players.find(p => p.id === playerId);
+            if (!playerToDelete) return;
+
+            // Check if player is in any team
+            const isInTeam = teams.some(t => t.player1 === playerToDelete.name || t.player2 === playerToDelete.name);
+            if (isInTeam) {
+                alert('Cannot delete this player. They are part of an existing team. Please remove the team first.');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to delete ${playerToDelete.name}?`)) {
+                players = players.filter(p => p.id !== playerId);
+                localStorage.setItem('dominoPlayers', JSON.stringify(players));
+                loadPlayers();
+                updateAllPlayerDropdowns();
+            }
+        }
+        
+        function updateAllPlayerDropdowns() {
+            populatePlayerSelectsForTeamCreation();
+            populatePlayerSelectsForSingleGame();
+        }
+
 
         // Teams section
         function loadTeams() {
@@ -2019,21 +2214,38 @@
         }
 
         function showCreateTeam() {
+            populatePlayerSelectsForTeamCreation();
             document.getElementById('createTeamForm').classList.remove('hidden');
+        }
+        
+        function populatePlayerSelectsForTeamCreation() {
+            const player1Select = document.getElementById('teamPlayer1Select');
+            const player2Select = document.getElementById('teamPlayer2Select');
+            
+            player1Select.innerHTML = '<option value="">Select Player 1</option>';
+            player2Select.innerHTML = '<option value="">Select Player 2</option>';
+            
+            players.forEach(player => {
+                player1Select.innerHTML += `<option value="${player.name}">${player.name}</option>`;
+                player2Select.innerHTML += `<option value="${player.name}">${player.name}</option>`;
+            });
         }
 
         function hideCreateTeam() {
             document.getElementById('createTeamForm').classList.add('hidden');
-            document.getElementById('player1Name').value = '';
-            document.getElementById('player2Name').value = '';
         }
 
         function createTeam() {
-            const player1Name = document.getElementById('player1Name').value.trim();
-            const player2Name = document.getElementById('player2Name').value.trim();
+            const player1Name = document.getElementById('teamPlayer1Select').value;
+            const player2Name = document.getElementById('teamPlayer2Select').value;
             
             if (!player1Name || !player2Name) {
-                alert('Please fill in both player names');
+                alert('Please select both players');
+                return;
+            }
+            
+            if (player1Name === player2Name) {
+                alert('Please select two different players to form a team.');
                 return;
             }
             
@@ -2060,7 +2272,6 @@
             
             hideCreateTeam();
             loadTeams();
-            populateTeamSelects();
         }
 
         function deleteTeam(teamId) {
@@ -2068,7 +2279,6 @@
                 teams = teams.filter(t => t.id !== teamId);
                 localStorage.setItem('dominoTeams', JSON.stringify(teams));
                 loadTeams();
-                populateTeamSelects();
             }
         }
 
@@ -2159,15 +2369,15 @@
                 .sort((a, b) => {
                     const aTotal = a.wins + a.losses;
                     const bTotal = b.wins + b.losses;
-                    const aWinRate = a.wins / aTotal;
-                    const bWinRate = b.wins / bTotal;
+                    const aWinRate = aTotal > 0 ? a.wins / aTotal : 0;
+                    const bWinRate = bTotal > 0 ? b.wins / bTotal : 0;
                     if (aWinRate !== bWinRate) return bWinRate - aWinRate;
                     return b.wins - a.wins;
                 });
             
             const rankingsHtml = rankings.map((stat, index) => {
                 const total = stat.wins + stat.losses;
-                const winRate = ((stat.wins / total) * 100).toFixed(1);
+                const winRate = total > 0 ? ((stat.wins / total) * 100).toFixed(1) : '0.0';
                 const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
                 
                 return `
@@ -2200,28 +2410,16 @@
             const filteredGames = filterGamesByPeriod(games, period);
             const playerStats = {};
             
-            // Collect all unique players from teams
-            teams.forEach(team => {
-                if (!playerStats[team.player1]) {
-                    playerStats[team.player1] = { name: team.player1, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0, teams: [] };
-                }
-                if (!playerStats[team.player2]) {
-                    playerStats[team.player2] = { name: team.player2, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0, teams: [] };
-                }
-                playerStats[team.player1].teams.push(`${team.player1} & ${team.player2}`);
-                playerStats[team.player2].teams.push(`${team.player1} & ${team.player2}`);
+            // Initialize stats for all known players
+            players.forEach(player => {
+                playerStats[player.name] = { name: player.name, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
             });
             
             // Calculate wins/losses for each player
             filteredGames.forEach(game => {
                 if (game.gameMode === 'single') {
-                    // Handle single player games
-                    if (!playerStats[game.winner]) {
-                        playerStats[game.winner] = { name: game.winner, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0, teams: ['Solo'] };
-                    }
-                    if (!playerStats[game.loser]) {
-                        playerStats[game.loser] = { name: game.loser, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0, teams: ['Solo'] };
-                    }
+                    if (!playerStats[game.winner]) playerStats[game.winner] = { name: game.winner, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
+                    if (!playerStats[game.loser]) playerStats[game.loser] = { name: game.loser, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
                     
                     playerStats[game.winner].wins += game.gameValue || 1;
                     if (game.isPetaroll) playerStats[game.winner].petarolls++;
@@ -2229,30 +2427,25 @@
                     playerStats[game.loser].losses += game.gameValue || 1;
                     if (game.isPetaroll) playerStats[game.loser].gotPetarolled++;
                 } else {
-                    // Handle team games
                     const winnerTeam = teams.find(t => t.id === game.winner);
                     const loserTeam = teams.find(t => t.id === game.loser);
                     
                     if (winnerTeam) {
-                        if (playerStats[winnerTeam.player1]) {
-                            playerStats[winnerTeam.player1].wins += game.gameValue || 1;
-                            if (game.isPetaroll) playerStats[winnerTeam.player1].petarolls++;
-                        }
-                        if (playerStats[winnerTeam.player2]) {
-                            playerStats[winnerTeam.player2].wins += game.gameValue || 1;
-                            if (game.isPetaroll) playerStats[winnerTeam.player2].petarolls++;
-                        }
+                        [winnerTeam.player1, winnerTeam.player2].forEach(pName => {
+                            if (playerStats[pName]) {
+                                playerStats[pName].wins += game.gameValue || 1;
+                                if (game.isPetaroll) playerStats[pName].petarolls++;
+                            }
+                        });
                     }
                     
                     if (loserTeam) {
-                        if (playerStats[loserTeam.player1]) {
-                            playerStats[loserTeam.player1].losses += game.gameValue || 1;
-                            if (game.isPetaroll) playerStats[loserTeam.player1].gotPetarolled++;
-                        }
-                        if (playerStats[loserTeam.player2]) {
-                            playerStats[loserTeam.player2].losses += game.gameValue || 1;
-                            if (game.isPetaroll) playerStats[loserTeam.player2].gotPetarolled++;
-                        }
+                         [loserTeam.player1, loserTeam.player2].forEach(pName => {
+                            if (playerStats[pName]) {
+                                playerStats[pName].losses += game.gameValue || 1;
+                                if (game.isPetaroll) playerStats[pName].gotPetarolled++;
+                            }
+                        });
                     }
                 }
             });
@@ -2262,15 +2455,15 @@
                 .sort((a, b) => {
                     const aTotal = a.wins + a.losses;
                     const bTotal = b.wins + b.losses;
-                    const aWinRate = a.wins / aTotal;
-                    const bWinRate = b.wins / bTotal;
+                    const aWinRate = aTotal > 0 ? a.wins / aTotal : 0;
+                    const bWinRate = bTotal > 0 ? b.wins / bTotal : 0;
                     if (aWinRate !== bWinRate) return bWinRate - aWinRate;
                     return b.wins - a.wins;
                 });
             
             const playersHtml = playerRankings.slice(0, 10).map((stat, index) => {
                 const total = stat.wins + stat.losses;
-                const winRate = ((stat.wins / total) * 100).toFixed(1);
+                const winRate = total > 0 ? ((stat.wins / total) * 100).toFixed(1) : '0.0';
                 const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
                 
                 return `
@@ -2308,7 +2501,7 @@
                 gamesByDate[date] += game.gameValue || 1;
             });
             
-            const dates = Object.keys(gamesByDate).sort();
+            const dates = Object.keys(gamesByDate).sort((a,b) => new Date(a) - new Date(b));
             const counts = dates.map(date => gamesByDate[date]);
             
             // Destroy existing chart if it exists
@@ -2403,17 +2596,13 @@
                     display.textContent = timeString;
                     
                     // Add visual feedback based on remaining time
-                    display.classList.remove('text-green-600', 'text-yellow-600', 'text-red-600');
+                    display.classList.remove('text-green-600', 'text-yellow-600', 'text-red-600', 'animate-pulse');
                     if (remainingTime > 30) {
                         display.classList.add('text-green-600');
                     } else if (remainingTime > 10) {
                         display.classList.add('text-yellow-600');
                     } else {
-                        display.classList.add('text-red-600');
-                        // Add pulsing effect for last 10 seconds
-                        if (remainingTime <= 10) {
-                            display.classList.add('animate-pulse');
-                        }
+                        display.classList.add('text-red-600', 'animate-pulse');
                     }
                 } else {
                     display.textContent = '--';
@@ -2690,4 +2879,3 @@
     </script>
 </body>
 </html>
-
