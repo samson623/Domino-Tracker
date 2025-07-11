@@ -2496,7 +2496,8 @@
             recognition.onend = () => {
                 const btn = document.getElementById('micBtn');
                 if (btn && btn.classList.contains('bg-green-600')) {
-                    toggleMic(false);
+                    // Keep listening if the mic is still active
+                    recognition.start();
                 }
             };
         }
