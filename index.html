@@ -512,7 +512,7 @@
                                   <i class="fas fa-microphone mr-2"></i>Voice
                               </button>
                         </div>
-                            <div id="voiceOutput" class="mt-2 text-sm text-gray-600 dark:text-gray-300"></div>
+                            <div id="voiceOutput" class="mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
                     </div>
 
                     <!-- Turn Timer -->
@@ -2490,7 +2490,7 @@
             recognition.onresult = (e) => {
                 const transcript = e.results[0][0].transcript;
                 const output = document.getElementById('voiceOutput');
-                if (output) output.textContent = transcript;
+                if (output) output.textContent = `Heard: "${transcript}"`;
                 parseVoiceCommand(transcript);
             };
             recognition.onend = () => {
@@ -2510,7 +2510,7 @@
                 recognition.start();
                 btn.classList.remove('bg-purple-500');
                 btn.classList.add('bg-green-600');
-                btn.innerHTML = '<i class="fas fa-microphone mr-2"></i>Listening';
+                btn.innerHTML = '<i class="fas fa-microphone-alt mr-2 animate-pulse"></i>Listening';
             } else {
                 recognition.stop();
                 btn.classList.remove('bg-green-600');
@@ -2526,24 +2526,34 @@
 
             const micBtn = document.getElementById('micBtn');
             const wasActive = micBtn && micBtn.classList.contains('bg-green-600');
-            if (wasActive) toggleMic(false);
+            if (wasActive) toggleMic(false); // Pause listening during confirmation
 
+            // Create a more prominent confirmation box
             output.innerHTML = `
-                ${message}
-                <div class="mt-2">
-                    <button id="confirmVoiceAction" class="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded mr-2">Confirm</button>
-                    <button id="cancelVoiceAction" class="bg-gray-500 hover:bg-gray-600 text-white py-1 px-3 rounded">Cancel</button>
-                </div>`;
+                <div class="p-4 bg-blue-100 dark:bg-blue-800 border-2 border-blue-400 dark:border-blue-600 rounded-lg shadow-lg text-center">
+                    <p class="font-semibold text-blue-800 dark:text-blue-100 mb-3">${message}</p>
+                    <div class="flex justify-center space-x-4">
+                        <button id="confirmVoiceAction" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-5 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                            <i class="fas fa-check mr-2"></i>Confirm
+                        </button>
+                        <button id="cancelVoiceAction" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-5 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                            <i class="fas fa-times mr-2"></i>Cancel
+                        </button>
+                    </div>
+                </div>
+            `;
+            
             document.getElementById('confirmVoiceAction').onclick = () => {
                 if (pendingVoiceAction) pendingVoiceAction();
                 pendingVoiceAction = null;
-                output.textContent = '';
-                if (wasActive) toggleMic(true);
+                output.innerHTML = ''; // Clear the confirmation box
+                if (wasActive) toggleMic(true); // Resume listening if it was active
             };
+            
             document.getElementById('cancelVoiceAction').onclick = () => {
                 pendingVoiceAction = null;
-                output.textContent = '';
-                if (wasActive) toggleMic(true);
+                output.innerHTML = ''; // Clear the confirmation box
+                if (wasActive) toggleMic(true); // Resume listening if it was active
             };
         }
 
@@ -2575,6 +2585,16 @@
             return total;
         }
 
+        function highlightInput(elementId) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.classList.add('border-green-500', 'border-2', 'shadow-lg');
+                setTimeout(() => {
+                    el.classList.remove('border-green-500', 'border-2', 'shadow-lg');
+                }, 2000); // Highlight for 2 seconds
+            }
+        }
+
         function parseVoiceCommand(text) {
             text = text.toLowerCase();
             const beat = text.match(/(.+) beat (.+) ([a-z0-9-\s]+) to ([a-z0-9-\s]+)/);
@@ -2592,30 +2612,29 @@
                 return;
             }
             let m;
-            m = text.match(/team (?:1|one|a) add ([a-z0-9-\s]+)/);
+            
+            // Updated logic: "team 1 add 25" or "blue 25" puts "25" in the custom input
+            m = text.match(/(?:team (?:1|one|a) add|blue) ([a-z0-9-\s]+)/);
             if (m) {
                 const val = parseNumberFromText(m[1]);
-                showVoiceConfirmation(`Add ${val} to Team 1?`, () => addScore(1, val));
+                if (!isNaN(val)) {
+                    document.getElementById('customScore1').value = val;
+                    highlightInput('customScore1');
+                }
                 return;
             }
-            m = text.match(/team (?:2|two|b) add ([a-z0-9-\s]+)/);
+
+            // Updated logic: "team 2 add 25" or "red 25" or "read 25" puts "25" in the custom input
+            m = text.match(/(?:team (?:2|two|b) add|red|read) ([a-z0-9-\s]+)/);
             if (m) {
                 const val = parseNumberFromText(m[1]);
-                showVoiceConfirmation(`Add ${val} to Team 2?`, () => addScore(2, val));
+                 if (!isNaN(val)) {
+                    document.getElementById('customScore2').value = val;
+                    highlightInput('customScore2');
+                }
                 return;
             }
-            m = text.match(/blue ([a-z0-9-\s]+)/);
-            if (m) {
-                const val = parseNumberFromText(m[1]);
-                showVoiceConfirmation(`Add ${val} to Blue?`, () => addScore(1, val));
-                return;
-            }
-            m = text.match(/red ([a-z0-9-\s]+)/);
-            if (m) {
-                const val = parseNumberFromText(m[1]);
-                showVoiceConfirmation(`Add ${val} to Red?`, () => addScore(2, val));
-                return;
-            }
+
             if (text.includes('undo team one') || text.includes('undo team 1') || text.includes('undo team a')) {
                 showVoiceConfirmation('Undo last Team 1 score?', () => undoScore(1));
                 return;
@@ -2624,8 +2643,14 @@
                 showVoiceConfirmation('Undo last Team 2 score?', () => undoScore(2));
                 return;
             }
-            if (text.includes('end game')) { endGame(); return; }
-            if (text.includes('reset game')) { resetGame(); return; }
+            if (text.includes('end game')) { 
+                showVoiceConfirmation('Are you sure you want to end the current game?', () => endGame());
+                return; 
+            }
+            if (text.includes('reset game')) { 
+                showVoiceConfirmation('Are you sure you want to reset the current game score?', () => resetGame());
+                return; 
+            }
             if (text.includes('dark mode')) { document.getElementById('themeToggle').click(); return; }
         }
 
@@ -2641,4 +2666,5 @@
     </script>
 </body>
 </html>
+
 
