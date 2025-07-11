@@ -2523,6 +2523,11 @@
             pendingVoiceAction = action;
             const output = document.getElementById('voiceOutput');
             if (!output) return;
+
+            const micBtn = document.getElementById('micBtn');
+            const wasActive = micBtn && micBtn.classList.contains('bg-green-600');
+            if (wasActive) toggleMic(false);
+
             output.innerHTML = `
                 ${message}
                 <div class="mt-2">
@@ -2533,10 +2538,12 @@
                 if (pendingVoiceAction) pendingVoiceAction();
                 pendingVoiceAction = null;
                 output.textContent = '';
+                if (wasActive) toggleMic(true);
             };
             document.getElementById('cancelVoiceAction').onclick = () => {
                 pendingVoiceAction = null;
                 output.textContent = '';
+                if (wasActive) toggleMic(true);
             };
         }
 
