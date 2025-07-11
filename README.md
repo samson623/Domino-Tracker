@@ -14,7 +14,7 @@ Domino Tracker is a web-based scoreboard for recording domino matches. Open
 - **Achievements** to unlock badges for milestones like 10 wins or the first
   PETAROLL, showing who earned each achievement.
 - **Dark mode** toggle.
-- **Voice control** – use your microphone to add scores, undo actions, or declare winners with simple phrases.
+- **Voice control** – use your microphone to add scores, undo actions, or declare winners with simple phrases. The microphone keeps listening while the voice button is active.
 - **Local storage** – all data is saved in your browser and can be exported or
   reset at any time.
 
