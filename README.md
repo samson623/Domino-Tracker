@@ -23,4 +23,16 @@ Domino Tracker is a web-based scoreboard for recording domino matches. Open
 2. Open `index.html` in your preferred web browser.
 3. Create teams or enter player names and start a new game.
 
-Your game data stays in the browser, so there's no server setup required.
+
+## Server with Supabase
+This repository now includes a small Node server that connects to
+[Supabase](https://supabase.com) for optional cloud storage. The server
+expects a `.env` file with your Supabase service key.
+
+### Setup
+1. Copy `.env.example` to `.env` and add your `SUPABASE_KEY`.
+2. Run `npm install` to install dependencies.
+3. Start the server with `npm start` and open `http://localhost:3000`.
+
+Without a `.env` file the app still works entirely in the browser using
+local storage.
