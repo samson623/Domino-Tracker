@@ -535,9 +535,9 @@
                             <button onclick="resetGame()" class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-6 rounded-lg">
                                 <i class="fas fa-sync mr-2"></i>Reset
                             </button>
-                              <button id="micBtn" onclick="toggleMic()" class="bg-purple-500 hover:bg-purple-600 text-white py-2 px-6 rounded-lg">
-                                  <i class="fas fa-microphone mr-2"></i>Voice
-                              </button>
+                             <button id="micBtn" onclick="toggleMic()" class="bg-purple-500 hover:bg-purple-600 text-white py-2 px-6 rounded-lg">
+                                 <i class="fas fa-microphone mr-2"></i>Voice
+                             </button>
                         </div>
                         <div id="confirmScoreContainer" class="hidden mt-4">
                             <div class="flex flex-col sm:flex-row gap-2">
@@ -1921,7 +1921,9 @@
 
         // Function to disable all score buttons
         function disableScoreButtons() {
-            const buttons = document.querySelectorAll('.score-btn, .custom-score-input, .flex.justify-center.items-center button');
+            // FIX: The original selector was too broad and was disabling buttons in the win modal.
+            // Scoping it to #liveGame ensures only the score-related buttons are affected.
+            const buttons = document.querySelectorAll('.score-btn, .custom-score-input, #liveGame .flex.justify-center.items-center button');
             buttons.forEach(button => {
                 button.disabled = true;
                 button.classList.add('opacity-50', 'cursor-not-allowed');
@@ -1930,7 +1932,8 @@
 
         // Function to enable all score buttons
         function enableScoreButtons() {
-            const buttons = document.querySelectorAll('.score-btn, .custom-score-input, .flex.justify-center.items-center button');
+            // FIX: The original selector was too broad. Scoping it to #liveGame to match the disable function.
+            const buttons = document.querySelectorAll('.score-btn, .custom-score-input, #liveGame .flex.justify-center.items-center button');
             buttons.forEach(button => {
                 button.disabled = false;
                 button.classList.remove('opacity-50', 'cursor-not-allowed');
