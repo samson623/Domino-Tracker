@@ -17,10 +17,12 @@ Domino Tracker is a web-based scoreboard for recording domino matches. Open
 - **Voice control** – use your microphone to add scores, undo actions, or declare winners with simple phrases. The microphone keeps listening while the voice button is active.
 - **Local storage** – all data is saved in your browser and can be exported or
   reset at any time.
+- **Realtime sync** – optional Supabase integration keeps scores in sync across devices.
+- **Offline queue** – actions are queued while offline and synced when connection returns.
 
 ## Usage
 1. Clone or download this repository.
 2. Open `index.html` in your preferred web browser.
 3. Create teams or enter player names and start a new game.
 
-Your game data stays in the browser, so there's no server setup required.
+Your game data stays in the browser, so there's no server setup required. To enable realtime sync, set `SUPABASE_URL` and `SUPABASE_ANON_KEY` in `index.html` and run the API endpoints in `api/` with Node.
