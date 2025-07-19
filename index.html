@@ -664,6 +664,9 @@
                         Total Games: <span id="totalGamesCount">0</span>
                     </span>
                 </h3>
+                <div class="mb-4">
+                    <input id="historySearch" type="text" oninput="filterHistory()" placeholder="Search player or team" class="w-full p-2 border rounded-lg" />
+                </div>
                 <div id="gameHistoryList" class="space-y-2">
                     <!-- Dynamic content -->
                 </div>
@@ -1136,17 +1139,14 @@
             setTimeout(() => toast.classList.add('hidden'), 3000);
         }
 
-        function loadHistory() {
-            // Reload games from localStorage to ensure we have the latest data
-            games = JSON.parse(localStorage.getItem('dominoGames')) || [];
-            
-            document.getElementById('totalGamesCount').textContent = games.length;
-            
-            const sortedGames = [...games].sort((a, b) => new Date(b.date) - new Date(a.date));
-            
+        function renderHistoryList(list) {
+            document.getElementById('totalGamesCount').textContent = list.length;
+
+            const sortedGames = [...list].sort((a, b) => new Date(b.date) - new Date(a.date));
+
             const historyHtml = sortedGames.map(game => {
                 let winnerName, loserName;
-                
+
                 if (game.gameMode === 'single') {
                     winnerName = game.winner;
                     loserName = game.loser;
@@ -1186,8 +1186,37 @@
                     </div>
                 `;
             }).join('');
-            
+
             document.getElementById('gameHistoryList').innerHTML = historyHtml || '<p class="text-gray-500 dark:text-gray-400">No games played yet</p>';
+        }
+
+        function loadHistory() {
+            games = JSON.parse(localStorage.getItem('dominoGames')) || [];
+            renderHistoryList(games);
+        }
+
+        function filterHistory() {
+            const query = document.getElementById('historySearch').value.trim().toLowerCase();
+            if (!query) {
+                renderHistoryList(games);
+                return;
+            }
+
+            const filtered = games.filter(game => {
+                let winnerName = '', loserName = '';
+                if (game.gameMode === 'single') {
+                    winnerName = game.winner.toLowerCase();
+                    loserName = game.loser.toLowerCase();
+                } else {
+                    const winnerTeam = teams.find(t => t.id === game.winner);
+                    const loserTeam = teams.find(t => t.id === game.loser);
+                    winnerName = winnerTeam ? `${winnerTeam.player1} & ${winnerTeam.player2}`.toLowerCase() : '';
+                    loserName = loserTeam ? `${loserTeam.player1} & ${loserTeam.player2}`.toLowerCase() : '';
+                }
+                return winnerName.includes(query) || loserName.includes(query);
+            });
+
+            renderHistoryList(filtered);
         }
 
         function formatDuration(milliseconds) {
