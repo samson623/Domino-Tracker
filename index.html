@@ -982,46 +982,45 @@
         function loadDailyTeamStats() {
             const today = new Date().toDateString();
             const todayGames = games.filter(g => new Date(g.date).toDateString() === today);
-            
-            const teamStats = {};
-            teams.forEach(team => {
-                const teamName = `${team.player1} & ${team.player2}`;
-                teamStats[team.id] = { name: teamName, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
-            });
-            
-            // Add single player stats
-            const singlePlayerStats = {};
-            
+
+            const stats = {};
+
             todayGames.forEach(game => {
                 if (game.gameMode === 'single') {
-                    // Handle single player games
-                    if (!singlePlayerStats[game.winner]) {
-                        singlePlayerStats[game.winner] = { name: game.winner, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
+                    const winnerName = game.winner;
+                    const loserName = game.loser;
+
+                    if (!stats[winnerName]) stats[winnerName] = { name: winnerName, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
+                    if (!stats[loserName]) stats[loserName] = { name: loserName, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
+
+                    stats[winnerName].wins += game.gameValue || 1;
+                    stats[loserName].losses += game.gameValue || 1;
+                    if (game.isPetaroll) {
+                        stats[winnerName].petarolls++;
+                        stats[loserName].gotPetarolled++;
                     }
-                    if (!singlePlayerStats[game.loser]) {
-                        singlePlayerStats[game.loser] = { name: game.loser, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
-                    }
-                    
-                    singlePlayerStats[game.winner].wins += game.gameValue || 1;
-                    if (game.isPetaroll) singlePlayerStats[game.winner].petarolls++;
-                    
-                    singlePlayerStats[game.loser].losses += game.gameValue || 1;
-                    if (game.isPetaroll) singlePlayerStats[game.loser].gotPetarolled++;
                 } else {
-                    // Handle team games
-                    if (teamStats[game.winner]) {
-                        teamStats[game.winner].wins += game.gameValue || 1;
-                        if (game.isPetaroll) teamStats[game.winner].petarolls++;
-                    }
-                    if (teamStats[game.loser]) {
-                        teamStats[game.loser].losses += game.gameValue || 1;
-                        if (game.isPetaroll) teamStats[game.loser].gotPetarolled++;
+                    const winnerTeam = teams.find(t => t.id === game.winner);
+                    const loserTeam = teams.find(t => t.id === game.loser);
+
+                    if (!winnerTeam || !loserTeam) return;
+
+                    const winnerName = `${winnerTeam.player1} & ${winnerTeam.player2}`;
+                    const loserName = `${loserTeam.player1} & ${loserTeam.player2}`;
+
+                    if (!stats[winnerName]) stats[winnerName] = { name: winnerName, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
+                    if (!stats[loserName]) stats[loserName] = { name: loserName, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
+
+                    stats[winnerName].wins += game.gameValue || 1;
+                    stats[loserName].losses += game.gameValue || 1;
+                    if (game.isPetaroll) {
+                        stats[winnerName].petarolls++;
+                        stats[loserName].gotPetarolled++;
                     }
                 }
             });
-            
-            const allStats = [...Object.values(teamStats), ...Object.values(singlePlayerStats)]
-                .filter(stat => stat.wins > 0 || stat.losses > 0);
+
+            const allStats = Object.values(stats).filter(stat => stat.wins > 0 || stat.losses > 0);
             
             const statsHtml = allStats
                 .map(stat => `
