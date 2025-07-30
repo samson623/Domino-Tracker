@@ -827,6 +827,14 @@
         };
         let pendingWinType = null;
 
+        // Helper to generate a reasonably unique ID
+        function generateId() {
+            return (
+                Date.now().toString(36) +
+                Math.random().toString(36).substring(2, 9)
+            );
+        }
+
         // Theme management
         function initTheme() {
             const theme = localStorage.getItem('theme') || 'light';
@@ -1437,7 +1445,7 @@
             } else {
                 // Create a new team if it doesn't exist
                 const newTeam = {
-                    id: Date.now().toString(),
+                    id: generateId(),
                     player1: p1,
                     player2: p2,
                     created: new Date().toISOString()
@@ -2125,7 +2133,7 @@
             }
 
             const newPlayer = {
-                id: Date.now().toString(),
+                id: generateId(),
                 name: playerName
             };
 
@@ -2264,7 +2272,7 @@
             }
             
             const newTeam = {
-                id: Date.now().toString(),
+                id: generateId(),
                 player1: player1Name,
                 player2: player2Name,
                 created: new Date().toISOString()
