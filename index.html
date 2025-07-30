@@ -7,7 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         /* Dark mode base styles */
         .dark {
@@ -123,32 +122,22 @@
         }
         
         @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
+            0% {
+                transform: scale(1);
             }
             50% {
-                opacity: 0.5;
+                transform: scale(1.05);
             }
-        }
-        
-        .animate-pulse {
-            animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            100% {
+                transform: scale(1);
+            }
         }
         
         .game-item:hover .delete-game-btn {
             opacity: 1;
         }
-
+        
         .delete-game-btn {
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .game-item:hover .edit-game-btn {
-            opacity: 1;
-        }
-
-        .edit-game-btn {
             opacity: 0;
             transition: opacity 0.2s;
         }
@@ -161,11 +150,6 @@
             background-color: #3B82F6;
             color: white;
             transform: scale(1.05);
-        }
-
-        .nav-btn.active, .mobile-nav-btn.active {
-            background-color: rgba(255, 255, 255, 0.3);
-            color: #3B82F6;
         }
         
         /* Custom score input styles */
@@ -186,29 +170,23 @@
             -moz-appearance: textfield;
         }
 
-        .achievement-badge {
-            background: linear-gradient(45deg, #34D399, #10B981);
-            color: #000;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
-            display: inline-block;
-            margin-right: 4px;
-            margin-bottom: 4px;
+        /* Player management styles */
+        .player-item {
+            transition: all 0.2s ease;
+        }
+        
+        .player-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
-        #achievementToast {
-            position: fixed;
-            bottom: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #10B981;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            z-index: 100;
+        .player-item:hover .delete-player-btn {
+            opacity: 1;
+        }
+
+        .delete-player-btn {
+            opacity: 0;
+            transition: opacity 0.2s;
         }
     </style>
 </head>
@@ -231,22 +209,22 @@
                     <i class="fas fa-moon" id="themeIcon"></i>
                 </button>
                 <div class="hidden md:flex space-x-2">
-                    <button onclick="showSection('home')" data-section="home" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
+                    <button onclick="showSection('home')" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
                         <i class="fas fa-home mr-1"></i>Home
                     </button>
-                    <button onclick="showSection('live')" data-section="live" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
+                    <button onclick="showSection('live')" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
                         <i class="fas fa-play mr-1"></i>Live Game
                     </button>
-                    <button onclick="showSection('players')" data-section="players" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
-                        <i class="fas fa-user-plus mr-1"></i>Players
+                    <button onclick="showSection('players')" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
+                        <i class="fas fa-user-friends mr-1"></i>Players
                     </button>
-                    <button onclick="showSection('teams')" data-section="teams" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
+                    <button onclick="showSection('teams')" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
                         <i class="fas fa-users mr-1"></i>Teams
                     </button>
-                    <button onclick="showSection('leaderboard')" data-section="leaderboard" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
+                    <button onclick="showSection('leaderboard')" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
                         <i class="fas fa-trophy mr-1"></i>Leaderboard
                     </button>
-                    <button onclick="showSection('history')" data-section="history" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
+                    <button onclick="showSection('history')" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
                         <i class="fas fa-list mr-1"></i>History
                     </button>
                 </div>
@@ -257,27 +235,27 @@
     <!-- Mobile Navigation -->
     <div class="md:hidden bg-white dark:bg-gray-800 border-t dark:border-gray-700 fixed bottom-0 left-0 right-0 z-50">
         <div class="flex justify-around py-2">
-            <button onclick="showSection('home')" data-section="home" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
+            <button onclick="showSection('home')" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
                 <i class="fas fa-home text-lg"></i>
                 <span class="text-xs">Home</span>
             </button>
-            <button onclick="showSection('live')" data-section="live" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
+            <button onclick="showSection('live')" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
                 <i class="fas fa-play text-lg"></i>
                 <span class="text-xs">Live</span>
             </button>
-             <button onclick="showSection('players')" data-section="players" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
-                <i class="fas fa-user-plus text-lg"></i>
+            <button onclick="showSection('players')" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
+                <i class="fas fa-user-friends text-lg"></i>
                 <span class="text-xs">Players</span>
             </button>
-            <button onclick="showSection('teams')" data-section="teams" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
+            <button onclick="showSection('teams')" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
                 <i class="fas fa-users text-lg"></i>
                 <span class="text-xs">Teams</span>
             </button>
-            <button onclick="showSection('leaderboard')" data-section="leaderboard" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
+            <button onclick="showSection('leaderboard')" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
                 <i class="fas fa-trophy text-lg"></i>
                 <span class="text-xs">Stats</span>
             </button>
-            <button onclick="showSection('history')" data-section="history" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
+            <button onclick="showSection('history')" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-700 dark:text-gray-300">
                 <i class="fas fa-list text-lg"></i>
                 <span class="text-xs">History</span>
             </button>
@@ -309,8 +287,11 @@
                         <button onclick="startNewGame()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-medium">
                             <i class="fas fa-play mr-2"></i>Start New Game
                         </button>
-                        <button onclick="showSection('players')" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-medium">
-                            <i class="fas fa-user-plus mr-2"></i>Add Player
+                        <button onclick="showSection('players')" class="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded-lg font-medium">
+                            <i class="fas fa-user-plus mr-2"></i>Add Players
+                        </button>
+                        <button onclick="showSection('teams')" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-medium">
+                            <i class="fas fa-plus mr-2"></i>Create Team
                         </button>
                     </div>
                     <div class="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900 rounded-lg">
@@ -330,17 +311,6 @@
                         <!-- Dynamic content -->
                     </div>
                 </div>
-
-                <!-- Achievements -->
-                <div class="domino-card p-6">
-                    <h3 class="text-lg font-bold mb-4 flex items-center">
-                        <i class="fas fa-award mr-2 text-green-500"></i>
-                        Achievements
-                    </h3>
-                    <div id="achievementsList" class="space-y-1 text-sm">
-                        <!-- Dynamic content -->
-                    </div>
-                </div>
             </div>
 
             <!-- Daily Team Leaderboard Chart -->
@@ -352,6 +322,43 @@
                 <div style="height: 400px;">
                     <canvas id="dailyTeamChart"></canvas>
                 </div>
+            </div>
+        </div>
+
+        <!-- Players Section -->
+        <div id="playersSection" class="section hidden">
+            <div class="mb-6">
+                <button onclick="showAddPlayer()" class="bg-purple-500 hover:bg-purple-600 text-white py-2 px-6 rounded-lg font-medium">
+                    <i class="fas fa-user-plus mr-2"></i>Add New Player
+                </button>
+            </div>
+
+            <!-- Add Player Form -->
+            <div id="addPlayerForm" class="domino-card p-6 mb-6 hidden">
+                <h3 class="text-xl font-bold mb-4">Add New Player</h3>
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Player Name</label>
+                        <input type="text" id="newPlayerName" class="w-full p-3 border rounded-lg" placeholder="Enter player name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Nickname (Optional)</label>
+                        <input type="text" id="newPlayerNickname" class="w-full p-3 border rounded-lg" placeholder="Enter nickname">
+                    </div>
+                </div>
+                <div class="flex space-x-4 mt-6">
+                    <button onclick="addPlayer()" class="bg-purple-500 hover:bg-purple-600 text-white py-2 px-6 rounded-lg font-medium">
+                        <i class="fas fa-save mr-2"></i>Add Player
+                    </button>
+                    <button onclick="hideAddPlayer()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-medium">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Players List -->
+            <div id="playersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamic content -->
             </div>
         </div>
 
@@ -381,34 +388,18 @@
                     
                     <!-- Team Mode Setup -->
                     <div id="teamModeSetup" class="hidden">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                            <!-- Team 1 -->
-                            <div class="p-4 border rounded-lg">
-                                <h4 class="font-bold mb-2 text-center">Team 1</h4>
-                                <div class="space-y-2">
-                                    <div>
-                                        <label class="block text-xs font-medium mb-1">Player 1</label>
-                                        <select id="team1Player1Select" class="w-full p-2 border rounded-lg"></select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-medium mb-1">Player 2</label>
-                                        <select id="team1Player2Select" class="w-full p-2 border rounded-lg"></select>
-                                    </div>
-                                </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Team 1</label>
+                                <select id="team1Select" class="w-full p-3 border rounded-lg">
+                                    <option value="">Select Team 1</option>
+                                </select>
                             </div>
-                            <!-- Team 2 -->
-                             <div class="p-4 border rounded-lg">
-                                <h4 class="font-bold mb-2 text-center">Team 2</h4>
-                                <div class="space-y-2">
-                                    <div>
-                                        <label class="block text-xs font-medium mb-1">Player 1</label>
-                                        <select id="team2Player1Select" class="w-full p-2 border rounded-lg"></select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-medium mb-1">Player 2</label>
-                                        <select id="team2Player2Select" class="w-full p-2 border rounded-lg"></select>
-                                    </div>
-                                </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Team 2</label>
+                                <select id="team2Select" class="w-full p-3 border rounded-lg">
+                                    <option value="">Select Team 2</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -418,15 +409,21 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-medium mb-2">Player 1</label>
-                                <select id="singlePlayer1Select" class="w-full p-3 border rounded-lg">
-                                    <option value="">Select Player 1</option>
-                                </select>
+                                <div class="space-y-2">
+                                    <select id="player1Select" class="w-full p-3 border rounded-lg">
+                                        <option value="">Select from existing players</option>
+                                    </select>
+                                    <input type="text" id="player1Input" class="w-full p-3 border rounded-lg" placeholder="Or enter new player name">
+                                </div>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium mb-2">Player 2</label>
-                                <select id="singlePlayer2Select" class="w-full p-3 border rounded-lg">
-                                    <option value="">Select Player 2</option>
-                                </select>
+                                <div class="space-y-2">
+                                    <select id="player2Select" class="w-full p-3 border rounded-lg">
+                                        <option value="">Select from existing players</option>
+                                    </select>
+                                    <input type="text" id="player2Input" class="w-full p-3 border rounded-lg" placeholder="Or enter new player name">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -436,8 +433,8 @@
                         <label class="block text-sm font-medium mb-2">Match Length</label>
                         <select id="bestOfSelect" class="w-full p-3 border rounded-lg">
                             <option value="1">Single Game</option>
-                            <option value="3">First to 3</option>
-                            <option value="5">First to 5</option>
+                            <option value="3">Best of 3</option>
+                            <option value="5">Best of 5</option>
                         </select>
                     </div>
                     
@@ -528,43 +525,12 @@
 
                     <!-- Game Controls -->
                     <div class="domino-card p-6 text-center">
-                        <div id="gameControls" class="flex justify-center space-x-4">
+                        <div class="flex justify-center space-x-4">
                             <button onclick="endGame()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg">
                                 <i class="fas fa-stop mr-2"></i>End Game
                             </button>
                             <button onclick="resetGame()" class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-6 rounded-lg">
                                 <i class="fas fa-sync mr-2"></i>Reset
-                            </button>
-                             <button id="micBtn" onclick="toggleMic()" class="bg-purple-500 hover:bg-purple-600 text-white py-2 px-6 rounded-lg">
-                                 <i class="fas fa-microphone mr-2"></i>Voice
-                             </button>
-                        </div>
-                        <div id="confirmScoreContainer" class="hidden mt-4">
-                            <div class="flex flex-col sm:flex-row gap-2">
-                                <button id="confirmScoreBtn" class="w-full sm:w-2/3 bg-green-500 hover:bg-green-600 text-white py-3 px-6 rounded-lg font-bold text-lg animate-pulse">
-                                    <i class="fas fa-check-double mr-2"></i>Confirm Final Score
-                                </button>
-                                <button id="correctScoreBtn" class="w-full sm:w-1/3 bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg font-medium">
-                                    <i class="fas fa-edit mr-2"></i>Edit
-                                </button>
-                            </div>
-                        </div>
-                        <div id="voiceOutput" class="mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
-                    </div>
-
-                    <!-- Turn Timer -->
-                    <div class="domino-card p-6 mt-6 text-center">
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium mb-2">Turn Time Limit (seconds, max 60)</label>
-                            <input type="number" id="turnTimeInput" class="w-24 p-2 border rounded-lg" min="5" max="60" value="60">
-                        </div>
-                        <div class="mb-4 text-3xl font-bold" id="turnTimerDisplay">--</div>
-                        <div class="flex justify-center space-x-4">
-                            <button onclick="startTurnTimer()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-lg">
-                                <i class="fas fa-play mr-2"></i>Start Timer
-                            </button>
-                            <button onclick="stopTurnTimer()" class="bg-red-500 hover:bg-red-600 text-white py-2 px-6 rounded-lg">
-                                <i class="fas fa-stop mr-2"></i>Stop
                             </button>
                         </div>
                     </div>
@@ -577,37 +543,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Players Section -->
-        <div id="playersSection" class="section hidden">
-            <div class="mb-6">
-                <button onclick="showCreatePlayerForm()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-lg font-medium">
-                    <i class="fas fa-user-plus mr-2"></i>Add New Player
-                </button>
-            </div>
-
-            <!-- Create Player Form -->
-            <div id="createPlayerForm" class="domino-card p-6 mb-6 hidden">
-                <h3 class="text-xl font-bold mb-4">Add New Player</h3>
-                <div>
-                    <label class="block text-sm font-medium mb-2">Player Name</label>
-                    <input type="text" id="newPlayerName" class="w-full p-3 border rounded-lg" placeholder="Enter player name">
-                </div>
-                <div class="flex space-x-4 mt-6">
-                    <button onclick="createPlayer()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded-lg font-medium">
-                        <i class="fas fa-save mr-2"></i>Save Player
-                    </button>
-                    <button onclick="hideCreatePlayerForm()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-medium">
-                        <i class="fas fa-times mr-2"></i>Cancel
-                    </button>
-                </div>
-            </div>
-
-            <!-- Players List -->
-            <div id="playersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Dynamic content -->
             </div>
         </div>
 
@@ -625,15 +560,21 @@
                 <div class="grid grid-cols-1 gap-4">
                     <div>
                         <label class="block text-sm font-medium mb-2">Player 1</label>
-                        <select id="teamPlayer1Select" class="w-full p-3 border rounded-lg">
-                            <option value="">Select Player 1</option>
-                        </select>
+                        <div class="space-y-2">
+                            <select id="teamPlayer1Select" class="w-full p-3 border rounded-lg">
+                                <option value="">Select from existing players</option>
+                            </select>
+                            <input type="text" id="player1Name" class="w-full p-3 border rounded-lg" placeholder="Or enter new player name">
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-2">Player 2</label>
-                        <select id="teamPlayer2Select" class="w-full p-3 border rounded-lg">
-                           <option value="">Select Player 2</option>
-                        </select>
+                        <div class="space-y-2">
+                            <select id="teamPlayer2Select" class="w-full p-3 border rounded-lg">
+                                <option value="">Select from existing players</option>
+                            </select>
+                            <input type="text" id="player2Name" class="w-full p-3 border rounded-lg" placeholder="Or enter new player name">
+                        </div>
                     </div>
                 </div>
                 <div class="flex space-x-4 mt-6">
@@ -664,9 +605,6 @@
                         Total Games: <span id="totalGamesCount">0</span>
                     </span>
                 </h3>
-                <div class="mb-4">
-                    <input id="historySearch" type="text" oninput="filterHistory()" placeholder="Search player or team" class="w-full p-2 border rounded-lg" />
-                </div>
                 <div id="gameHistoryList" class="space-y-2">
                     <!-- Dynamic content -->
                 </div>
@@ -686,13 +624,13 @@
                     <button onclick="showLeaderboard('daily')" class="leaderboard-tab bg-blue-500 text-white py-2 px-4 rounded-lg font-medium">
                         <i class="fas fa-calendar-day mr-1"></i>Daily
                     </button>
-                    <button onclick="showLeaderboard('weekly')" class="leaderboard-tab bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 px-4 rounded-lg font-medium">
+                    <button onclick="showLeaderboard('weekly')" class="leaderboard-tab bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg font-medium">
                         <i class="fas fa-calendar-week mr-1"></i>Weekly
                     </button>
-                    <button onclick="showLeaderboard('monthly')" class="leaderboard-tab bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 px-4 rounded-lg font-medium">
+                    <button onclick="showLeaderboard('monthly')" class="leaderboard-tab bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg font-medium">
                         <i class="fas fa-calendar-alt mr-1"></i>Monthly
                     </button>
-                    <button onclick="showLeaderboard('alltime')" class="leaderboard-tab bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 px-4 rounded-lg font-medium">
+                    <button onclick="showLeaderboard('alltime')" class="leaderboard-tab bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg font-medium">
                         <i class="fas fa-infinity mr-1"></i>All Time
                     </button>
                 </div>
@@ -742,7 +680,7 @@
     </div>
 
     <!-- Win Modal -->
-    <div id="winModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" style="z-index:1000;">
+    <div id="winModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="domino-card p-8 m-4 max-w-md w-full text-center">
             <div class="text-6xl mb-4">🎉</div>
             <h2 class="text-2xl font-bold mb-4">Game Over!</h2>
@@ -763,7 +701,7 @@
         <div class="domino-card p-8 m-4 max-w-md w-full text-center">
             <div class="text-6xl mb-4 text-red-500">⚠️</div>
             <h2 class="text-2xl font-bold mb-4">Reset All Data?</h2>
-            <p class="text-lg mb-6">This will permanently delete all players, teams, games, and statistics. This action cannot be undone!</p>
+            <p class="text-lg mb-6">This will permanently delete all teams, players, games, and statistics. This action cannot be undone!</p>
             <div class="flex space-x-4 justify-center">
                 <button onclick="resetAllData()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium">
                     <i class="fas fa-trash-alt mr-2"></i>Yes, Reset Everything
@@ -780,7 +718,7 @@
         <div class="domino-card p-8 m-4 max-w-md w-full text-center">
             <div class="text-6xl mb-4">💾</div>
             <h2 class="text-2xl font-bold mb-4">Export Data</h2>
-            <p class="text-lg mb-6">Download a backup of all your players, teams and game data.</p>
+            <p class="text-lg mb-6">Download a backup of all your teams, players, and game data.</p>
             <div class="flex space-x-4 justify-center">
                 <button onclick="exportData()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg font-medium">
                     <i class="fas fa-download mr-2"></i>Download Backup
@@ -792,26 +730,12 @@
         </div>
     </div>
 
-    <!-- Edit Game Modal -->
-    <div id="editGameModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="domino-card p-6 m-4 max-w-md w-full">
-            <h2 class="text-xl font-bold mb-4">Edit Game</h2>
-            <div id="editGameForm" class="space-y-4"></div>
-            <div class="flex justify-end space-x-2 mt-4">
-                <button onclick="saveGameEdits()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium">Save</button>
-                <button onclick="closeEditGameModal()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg font-medium">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="achievementToast" class="hidden"></div>
-
     <script>
         // Global variables
         let currentGame = null;
         let currentGameMode = null;
-        let players = JSON.parse(localStorage.getItem('dominoPlayers')) || [];
         let teams = JSON.parse(localStorage.getItem('dominoTeams')) || [];
+        let players = JSON.parse(localStorage.getItem('dominoPlayers')) || [];
         let games = JSON.parse(localStorage.getItem('dominoGames')) || [];
         let currentSection = 'home';
         let chartInstances = {};
@@ -820,21 +744,378 @@
         let matchWins1 = 0;
         let matchWins2 = 0;
         let matchOver = false;
-        let turnTimer = null;
-        let remainingTime = 0;
-        let editingGameId = null;
-        let achievements = JSON.parse(localStorage.getItem('dominoAchievements')) || {};
-        function generateId() {
-            if (window.crypto && crypto.randomUUID) {
-                return crypto.randomUUID();
-            }
-            return Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
+
+        // Player management functions
+        function loadPlayers() {
+            const playersHtml = players.map(player => {
+                // Calculate player stats from games
+                const singleGames = games.filter(g => g.gameMode === 'single' && (g.winner === player.name || g.loser === player.name));
+                const teamGames = games.filter(g => {
+                    if (g.gameMode !== 'team') return false;
+                    const winnerTeam = teams.find(t => t.id === g.winner);
+                    const loserTeam = teams.find(t => t.id === g.loser);
+                    return (winnerTeam && (winnerTeam.player1 === player.name || winnerTeam.player2 === player.name)) ||
+                           (loserTeam && (loserTeam.player1 === player.name || loserTeam.player2 === player.name));
+                });
+                
+                // Calculate wins and losses
+                let wins = 0, losses = 0, petarolls = 0, gotPetarolled = 0;
+                
+                // Single game wins/losses
+                singleGames.forEach(game => {
+                    if (game.winner === player.name) {
+                        wins += game.gameValue || 1;
+                        if (game.isPetaroll) petarolls++;
+                    } else {
+                        losses += game.gameValue || 1;
+                        if (game.isPetaroll) gotPetarolled++;
+                    }
+                });
+                
+                // Team game wins/losses
+                teamGames.forEach(game => {
+                    const winnerTeam = teams.find(t => t.id === game.winner);
+                    const loserTeam = teams.find(t => t.id === game.loser);
+                    
+                    if (winnerTeam && (winnerTeam.player1 === player.name || winnerTeam.player2 === player.name)) {
+                        wins += game.gameValue || 1;
+                        if (game.isPetaroll) petarolls++;
+                    } else if (loserTeam && (loserTeam.player1 === player.name || loserTeam.player2 === player.name)) {
+                        losses += game.gameValue || 1;
+                        if (game.isPetaroll) gotPetarolled++;
+                    }
+                });
+                
+                const totalGames = wins + losses;
+                const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(1) : 0;
+                
+                // Find teams this player is part of
+                const playerTeams = teams.filter(t => t.player1 === player.name || t.player2 === player.name);
+                
+                return `
+                    <div class="domino-card p-6 player-item">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold">${player.name}</h3>
+                                ${player.nickname ? `<p class="text-sm text-gray-500 dark:text-gray-400">"${player.nickname}"</p>` : ''}
+                            </div>
+                            <button onclick="deletePlayer('${player.id}')" class="delete-player-btn text-red-500 hover:text-red-700">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-4 text-center mb-4">
+                            <div>
+                                <div class="text-2xl font-bold text-green-600">${wins}</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">Wins</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-red-600">${losses}</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">Losses</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-blue-600">${winRate}%</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">Win Rate</div>
+                            </div>
+                        </div>
+                        
+                        ${playerTeams.length > 0 ? `
+                            <div class="mb-3">
+                                <h4 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Teams:</h4>
+                                <div class="space-y-1">
+                                    ${playerTeams.map(team => `
+                                        <div class="text-sm bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">
+                                            ${team.player1} & ${team.player2}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="text-center space-y-1">
+                            ${petarolls > 0 ? `<span class="petaroll-badge">${petarolls} PETAROLLS DONE</span>` : ''}
+                            ${gotPetarolled > 0 ? `<span class="petarolled-badge">GOT PETAROLLED ${gotPetarolled} TIMES</span>` : ''}
+                        </div>
+                        
+                        <div class="mt-3 text-xs text-gray-500 dark:text-gray-400 text-center">
+                            Added: ${new Date(player.created).toLocaleDateString()}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('playersList').innerHTML = playersHtml || '<div class="col-span-full text-center text-gray-500 dark:text-gray-400">No players added yet</div>';
         }
-        const achievementDefinitions = {
-            tenWins: '🏅 Ten Wins',
-            firstPetaroll: '🔥 First PETAROLL'
-        };
-        let pendingWinType = null;
+
+        function showAddPlayer() {
+            document.getElementById('addPlayerForm').classList.remove('hidden');
+            document.getElementById('newPlayerName').focus();
+        }
+
+        function hideAddPlayer() {
+            document.getElementById('addPlayerForm').classList.add('hidden');
+            document.getElementById('newPlayerName').value = '';
+            document.getElementById('newPlayerNickname').value = '';
+        }
+
+        function addPlayer() {
+            const playerName = document.getElementById('newPlayerName').value.trim();
+            const playerNickname = document.getElementById('newPlayerNickname').value.trim();
+            
+            if (!playerName) {
+                alert('Please enter a player name');
+                return;
+            }
+            
+            // Check for duplicate player
+            const isDuplicate = players.some(player => player.name.toLowerCase() === playerName.toLowerCase());
+            
+            if (isDuplicate) {
+                alert('A player with this name already exists!');
+                return;
+            }
+            
+            const newPlayer = {
+                id: Date.now().toString(),
+                name: playerName,
+                nickname: playerNickname,
+                created: new Date().toISOString()
+            };
+            
+            players.push(newPlayer);
+            localStorage.setItem('dominoPlayers', JSON.stringify(players));
+            
+            hideAddPlayer();
+            loadPlayers();
+            populatePlayerSelects();
+        }
+
+        function deletePlayer(playerId) {
+            const player = players.find(p => p.id === playerId);
+            if (!player) return;
+            
+            // Check if player is part of any teams
+            const playerTeams = teams.filter(t => t.player1 === player.name || t.player2 === player.name);
+            
+            if (playerTeams.length > 0) {
+                const teamNames = playerTeams.map(t => `${t.player1} & ${t.player2}`).join(', ');
+                if (!confirm(`${player.name} is part of the following team(s): ${teamNames}. Deleting this player will not affect existing teams or game history. Continue?`)) {
+                    return;
+                }
+            }
+            
+            if (confirm(`Are you sure you want to delete ${player.name}?`)) {
+                players = players.filter(p => p.id !== playerId);
+                localStorage.setItem('dominoPlayers', JSON.stringify(players));
+                loadPlayers();
+                populatePlayerSelects();
+            }
+        }
+
+        function populatePlayerSelects() {
+            const selects = [
+                'player1Select', 'player2Select', 
+                'teamPlayer1Select', 'teamPlayer2Select'
+            ];
+            
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    const currentValue = select.value;
+                    select.innerHTML = '<option value="">Select from existing players</option>';
+                    
+                    players.forEach(player => {
+                        const displayName = player.nickname ? `${player.name} "${player.nickname}"` : player.name;
+                        select.innerHTML += `<option value="${player.name}">${displayName}</option>`;
+                    });
+                    
+                    // Restore previous selection if it still exists
+                    if (currentValue && players.some(p => p.name === currentValue)) {
+                        select.value = currentValue;
+                    }
+                }
+            });
+        }
+
+        // Enhanced game setup functions
+        function selectGameMode(mode) {
+            currentGameMode = mode;
+            
+            // Update button states
+            document.getElementById('teamModeBtn').classList.remove('active');
+            document.getElementById('singleModeBtn').classList.remove('active');
+            
+            if (mode === 'team') {
+                document.getElementById('teamModeBtn').classList.add('active');
+                document.getElementById('teamModeSetup').classList.remove('hidden');
+                document.getElementById('singleModeSetup').classList.add('hidden');
+                populateTeamSelects();
+            } else {
+                document.getElementById('singleModeBtn').classList.add('active');
+                document.getElementById('teamModeSetup').classList.add('hidden');
+                document.getElementById('singleModeSetup').classList.remove('hidden');
+                populatePlayerSelects();
+            }
+            
+            document.getElementById('gameSetup').classList.remove('hidden');
+        }
+
+        function startGame() {
+            bestOf = parseInt(document.getElementById('bestOfSelect').value);
+            matchWins1 = 0;
+            matchWins2 = 0;
+            matchOver = false;
+
+            if (currentGameMode === 'team') {
+                const team1Id = document.getElementById('team1Select').value;
+                const team2Id = document.getElementById('team2Select').value;
+                
+                if (!team1Id || !team2Id) {
+                    alert('Please select both teams');
+                    return;
+                }
+                
+                if (team1Id === team2Id) {
+                    alert('Please select different teams');
+                    return;
+                }
+                
+                const team1 = teams.find(t => t.id === team1Id);
+                const team2 = teams.find(t => t.id === team2Id);
+                
+                currentGame = {
+                    gameMode: 'team',
+                    team1: team1,
+                    team2: team2,
+                    score1: 0,
+                    score2: 0,
+                    history: [],
+                    startTime: new Date(),
+                    ended: false
+                };
+                
+                document.getElementById('team1Players').textContent = `${team1.player1} & ${team1.player2}`;
+                document.getElementById('team2Players').textContent = `${team2.player1} & ${team2.player2}`;
+            } else {
+                // Get player names from either select dropdowns or text inputs
+                let player1Name = document.getElementById('player1Select').value || document.getElementById('player1Input').value.trim();
+                let player2Name = document.getElementById('player2Select').value || document.getElementById('player2Input').value.trim();
+                
+                if (!player1Name || !player2Name) {
+                    alert('Please select or enter both player names');
+                    return;
+                }
+                
+                if (player1Name === player2Name) {
+                    alert('Please select different players');
+                    return;
+                }
+                
+                // Auto-add players to the players list if they don't exist
+                [player1Name, player2Name].forEach(name => {
+                    if (!players.some(p => p.name === name)) {
+                        const newPlayer = {
+                            id: Date.now().toString() + Math.random(),
+                            name: name,
+                            nickname: '',
+                            created: new Date().toISOString()
+                        };
+                        players.push(newPlayer);
+                    }
+                });
+                localStorage.setItem('dominoPlayers', JSON.stringify(players));
+                
+                currentGame = {
+                    gameMode: 'single',
+                    player1: player1Name,
+                    player2: player2Name,
+                    score1: 0,
+                    score2: 0,
+                    history: [],
+                    startTime: new Date(),
+                    ended: false
+                };
+                
+                document.getElementById('team1Players').textContent = player1Name;
+                document.getElementById('team2Players').textContent = player2Name;
+            }
+            
+            document.getElementById('gameSetup').classList.add('hidden');
+            document.getElementById('liveGame').classList.remove('hidden');
+            
+            // Clear custom score inputs
+            document.getElementById('customScore1').value = '';
+            document.getElementById('customScore2').value = '';
+            
+            enableScoreButtons();
+            updateGameDisplay();
+            updateMatchScoreDisplay();
+        }
+
+        // Enhanced team creation function
+        function createTeam() {
+            // Get player names from either select dropdowns or text inputs
+            let player1Name = document.getElementById('teamPlayer1Select').value || document.getElementById('player1Name').value.trim();
+            let player2Name = document.getElementById('teamPlayer2Select').value || document.getElementById('player2Name').value.trim();
+            
+            if (!player1Name || !player2Name) {
+                alert('Please select or enter both player names');
+                return;
+            }
+            
+            if (player1Name === player2Name) {
+                alert('Please select different players');
+                return;
+            }
+            
+            // Check for duplicate team
+            const isDuplicate = teams.some(team => 
+                (team.player1 === player1Name && team.player2 === player2Name) ||
+                (team.player1 === player2Name && team.player2 === player1Name)
+            );
+            
+            if (isDuplicate) {
+                alert('This team already exists!');
+                return;
+            }
+            
+            // Auto-add players to the players list if they don't exist
+            [player1Name, player2Name].forEach(name => {
+                if (!players.some(p => p.name === name)) {
+                    const newPlayer = {
+                        id: Date.now().toString() + Math.random(),
+                        name: name,
+                        nickname: '',
+                        created: new Date().toISOString()
+                    };
+                    players.push(newPlayer);
+                }
+            });
+            localStorage.setItem('dominoPlayers', JSON.stringify(players));
+            
+            const newTeam = {
+                id: Date.now().toString(),
+                player1: player1Name,
+                player2: player2Name,
+                created: new Date().toISOString()
+            };
+            
+            teams.push(newTeam);
+            localStorage.setItem('dominoTeams', JSON.stringify(teams));
+            
+            hideCreateTeam();
+            loadTeams();
+            populateTeamSelects();
+            populatePlayerSelects();
+        }
+
+        function hideCreateTeam() {
+            document.getElementById('createTeamForm').classList.add('hidden');
+            document.getElementById('player1Name').value = '';
+            document.getElementById('player2Name').value = '';
+            document.getElementById('teamPlayer1Select').value = '';
+            document.getElementById('teamPlayer2Select').value = '';
+        }
 
         // Theme management
         function initTheme() {
@@ -872,11 +1153,11 @@
 
         function exportData() {
             const data = {
-                players: players,
                 teams: teams,
                 games: games,
+                players: players,
                 exportDate: new Date().toISOString(),
-                version: '1.1' // Updated version
+                version: '1.1'
             };
             
             const dataStr = JSON.stringify(data, null, 2);
@@ -903,16 +1184,14 @@
 
         function resetAllData() {
             // Clear all data from localStorage
-            localStorage.removeItem('dominoPlayers');
             localStorage.removeItem('dominoTeams');
             localStorage.removeItem('dominoGames');
-            localStorage.removeItem('dominoAchievements');
+            localStorage.removeItem('dominoPlayers');
             
             // Reset global variables
-            players = [];
             teams = [];
             games = [];
-            achievements = {};
+            players = [];
             currentGame = null;
             
             // Destroy all chart instances
@@ -939,10 +1218,7 @@
             
             // Update navigation states
             document.querySelectorAll('.nav-btn, .mobile-nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.querySelectorAll(`[data-section="${section}"]`).forEach(btn => {
-                btn.classList.add('active');
+                btn.classList.remove('bg-white', 'bg-opacity-30', 'text-blue-500');
             });
             
             if (section === 'home') loadHome();
@@ -965,19 +1241,23 @@
                 loadHistory();
             }
             
+            // If we're on the players page, reload it
+            if (currentSection === 'players') {
+                loadPlayers();
+            }
+            
             // If we're on the teams page, reload it
             if (currentSection === 'teams') {
                 loadTeams();
-            }
-             // If we're on the players page, reload it
-            if (currentSection === 'players') {
-                loadPlayers();
             }
             
             // If we're on the leaderboard page, reload it
             if (currentSection === 'leaderboard') {
                 loadLeaderboard();
             }
+            
+            // Update player selects
+            populatePlayerSelects();
         }
 
         // Home section
@@ -985,7 +1265,6 @@
             loadDailyTeamStats();
             loadRecentGames();
             loadDailyTeamChart();
-            loadAchievements();
         }
 
         function loadDailyTeamStats() {
@@ -1094,65 +1373,17 @@
             document.getElementById('recentGames').innerHTML = recentHtml || '<p class="text-gray-500 dark:text-gray-400 text-sm">No recent games</p>';
         }
 
-        function loadAchievements() {
-            const listEl = document.getElementById('achievementsList');
-            const unlocked = Object.keys(achievements).filter(key => achievements[key]);
-            const html = unlocked.map(key => {
-                const value = achievements[key];
-                const winner = value && typeof value === 'object' ? ` - ${value.winner}` : '';
-                return `<span class="achievement-badge">${achievementDefinitions[key]}${winner}</span>`;
-            }).join('');
-            listEl.innerHTML = html || '<p class="text-gray-500 dark:text-gray-400">No achievements yet</p>';
-        }
-
-        function getWinnerName(game) {
-            if (!game) return 'Unknown';
-            if (game.gameMode === 'single') {
-                return game.winner;
-            } else {
-                const team = teams.find(t => t.id === game.winner);
-                return team ? `${team.player1} & ${team.player2}` : 'Unknown';
-            }
-        }
-
-        function checkAchievements() {
-            const totalWins = games.reduce((sum, g) => sum + (g.gameValue || 1), 0);
-            let updated = false;
-            const lastGame = games[games.length - 1];
-            if (totalWins >= 10 && !achievements.tenWins) {
-                const winnerName = getWinnerName(lastGame);
-                achievements.tenWins = { winner: winnerName };
-                showAchievement('Achievement Unlocked: ' + achievementDefinitions.tenWins + ' - ' + winnerName);
-                updated = true;
-            }
-            const firstPetarollGame = games.find(g => g.isPetaroll);
-            if (firstPetarollGame && !achievements.firstPetaroll) {
-                const winnerName = getWinnerName(firstPetarollGame);
-                achievements.firstPetaroll = { winner: winnerName };
-                showAchievement('Achievement Unlocked: ' + achievementDefinitions.firstPetaroll + ' - ' + winnerName);
-                updated = true;
-            }
-            if (updated) {
-                localStorage.setItem('dominoAchievements', JSON.stringify(achievements));
-                loadAchievements();
-            }
-        }
-
-        function showAchievement(message) {
-            const toast = document.getElementById('achievementToast');
-            toast.textContent = message;
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 3000);
-        }
-
-        function renderHistoryList(list) {
-            document.getElementById('totalGamesCount').textContent = list.length;
-
-            const sortedGames = [...list].sort((a, b) => new Date(b.date) - new Date(a.date));
-
+        function loadHistory() {
+            // Reload games from localStorage to ensure we have the latest data
+            games = JSON.parse(localStorage.getItem('dominoGames')) || [];
+            
+            document.getElementById('totalGamesCount').textContent = games.length;
+            
+            const sortedGames = [...games].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
             const historyHtml = sortedGames.map(game => {
                 let winnerName, loserName;
-
+                
                 if (game.gameMode === 'single') {
                     winnerName = game.winner;
                     loserName = game.loser;
@@ -1169,9 +1400,6 @@
                 
                 return `
                     <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg game-item relative">
-                        <button onclick="showEditGameModal('${game.id}')" class="edit-game-btn absolute top-2 right-10 text-blue-500 hover:text-blue-700 p-2">
-                            <i class="fas fa-edit"></i>
-                        </button>
                         <button onclick="deleteGame('${game.id}')" class="delete-game-btn absolute top-2 right-2 text-red-500 hover:text-red-700 p-2">
                             <i class="fas fa-trash"></i>
                         </button>
@@ -1179,7 +1407,7 @@
                             <div class="flex-1">
                                 <div class="font-medium">
                                     ${gameTypeIcon}${winnerName} ${game.isPetaroll ? 'PETAROLLED' : 'beat'} ${loserName}
-                                    ${game.isPetaroll ? `<span class="petaroll-badge">PETAROLL</span>` : ''}
+                                    ${game.isPetaroll ? '<span class="petaroll-badge">PETAROLL</span>' : ''}
                                 </div>
                                 <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                     Score: ${game.winnerScore} - ${game.loserScore} | Duration: ${duration}
@@ -1192,37 +1420,8 @@
                     </div>
                 `;
             }).join('');
-
+            
             document.getElementById('gameHistoryList').innerHTML = historyHtml || '<p class="text-gray-500 dark:text-gray-400">No games played yet</p>';
-        }
-
-        function loadHistory() {
-            games = JSON.parse(localStorage.getItem('dominoGames')) || [];
-            renderHistoryList(games);
-        }
-
-        function filterHistory() {
-            const query = document.getElementById('historySearch').value.trim().toLowerCase();
-            if (!query) {
-                renderHistoryList(games);
-                return;
-            }
-
-            const filtered = games.filter(game => {
-                let winnerName = '', loserName = '';
-                if (game.gameMode === 'single') {
-                    winnerName = game.winner.toLowerCase();
-                    loserName = game.loser.toLowerCase();
-                } else {
-                    const winnerTeam = teams.find(t => t.id === game.winner);
-                    const loserTeam = teams.find(t => t.id === game.loser);
-                    winnerName = winnerTeam ? `${winnerTeam.player1} & ${winnerTeam.player2}`.toLowerCase() : '';
-                    loserName = loserTeam ? `${loserTeam.player1} & ${loserTeam.player2}`.toLowerCase() : '';
-                }
-                return winnerName.includes(query) || loserName.includes(query);
-            });
-
-            renderHistoryList(filtered);
         }
 
         function formatDuration(milliseconds) {
@@ -1236,82 +1435,12 @@
             if (confirm('Are you sure you want to delete this game? This will affect all statistics.')) {
                 games = games.filter(g => g.id != gameId);
                 localStorage.setItem('dominoGames', JSON.stringify(games));
-
+                
                 // Reload all sections that might be affected
                 refreshAllData();
-
+                
                 alert('Game deleted successfully!');
             }
-        }
-
-        function showEditGameModal(gameId) {
-            const game = games.find(g => g.id == gameId);
-            if (!game) return;
-            editingGameId = gameId;
-
-            let formHtml = '';
-            if (game.gameMode === 'team') {
-                const options = teams.map(t => `<option value="${t.id}">${t.player1} & ${t.player2}</option>`).join('');
-                formHtml += `
-                    <label class="block text-sm font-medium">Winner</label>
-                    <select id="editWinner" class="w-full p-2 border rounded-lg mb-2">${options}</select>
-                    <label class="block text-sm font-medium">Loser</label>
-                    <select id="editLoser" class="w-full p-2 border rounded-lg mb-2">${options}</select>
-                `;
-            } else {
-                const options = players.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
-                 formHtml += `
-                    <label class="block text-sm font-medium">Winner</label>
-                    <select id="editWinner" class="w-full p-2 border rounded-lg mb-2">${options}</select>
-                    <label class="block text-sm font-medium">Loser</label>
-                    <select id="editLoser" class="w-full p-2 border rounded-lg mb-2">${options}</select>
-                `;
-            }
-
-            formHtml += `
-                <label class="block text-sm font-medium">Winner Score</label>
-                <input id="editWinnerScore" type="number" class="w-full p-2 border rounded-lg mb-2" />
-                <label class="block text-sm font-medium">Loser Score</label>
-                <input id="editLoserScore" type="number" class="w-full p-2 border rounded-lg mb-2" />
-                <label class="inline-flex items-center mt-2"><input type="checkbox" id="editIsPetaroll" class="mr-2">PETAROLL</label>
-            `;
-
-            document.getElementById('editGameForm').innerHTML = formHtml;
-
-            document.getElementById('editWinner').value = game.winner;
-            document.getElementById('editLoser').value = game.loser;
-            document.getElementById('editWinnerScore').value = game.winnerScore;
-            document.getElementById('editLoserScore').value = game.loserScore;
-            document.getElementById('editIsPetaroll').checked = !!game.isPetaroll;
-
-            document.getElementById('editGameModal').classList.remove('hidden');
-        }
-
-        function closeEditGameModal() {
-            document.getElementById('editGameModal').classList.add('hidden');
-            editingGameId = null;
-        }
-
-        function saveGameEdits() {
-            if (editingGameId === null) return;
-            const gameIndex = games.findIndex(g => g.id == editingGameId);
-            if (gameIndex === -1) return;
-
-            const game = games[gameIndex];
-            const winnerVal = document.getElementById('editWinner').value;
-            const loserVal = document.getElementById('editLoser').value;
-            
-            game.winner = game.gameMode === 'team' ? winnerVal : winnerVal;
-            game.loser = game.gameMode === 'team' ? loserVal : loserVal;
-            game.winnerScore = parseInt(document.getElementById('editWinnerScore').value) || 0;
-            game.loserScore = parseInt(document.getElementById('editLoserScore').value) || 0;
-            game.isPetaroll = document.getElementById('editIsPetaroll').checked;
-            game.gameValue = game.isPetaroll ? 2 : 1;
-
-            localStorage.setItem('dominoGames', JSON.stringify(games));
-            closeEditGameModal();
-
-            refreshAllData();
         }
 
         function loadDailyTeamChart() {
@@ -1405,164 +1534,22 @@
             currentGameMode = null;
         }
 
-        function selectGameMode(mode) {
-            currentGameMode = mode;
+        function populateTeamSelects() {
+            const team1Select = document.getElementById('team1Select');
+            const team2Select = document.getElementById('team2Select');
             
-            // Update button states
-            document.getElementById('teamModeBtn').classList.remove('active');
-            document.getElementById('singleModeBtn').classList.remove('active');
+            team1Select.innerHTML = '<option value="">Select Team 1</option>';
+            team2Select.innerHTML = '<option value="">Select Team 2</option>';
             
-            if (mode === 'team') {
-                document.getElementById('teamModeBtn').classList.add('active');
-                document.getElementById('teamModeSetup').classList.remove('hidden');
-                document.getElementById('singleModeSetup').classList.add('hidden');
-                populatePlayerSelectsForTeamGame();
-            } else {
-                document.getElementById('singleModeBtn').classList.add('active');
-                document.getElementById('teamModeSetup').classList.add('hidden');
-                document.getElementById('singleModeSetup').classList.remove('hidden');
-                populatePlayerSelectsForSingleGame();
-            }
-            
-            document.getElementById('gameSetup').classList.remove('hidden');
-        }
-
-        function populatePlayerSelectsForTeamGame() {
-            const selects = [
-                document.getElementById('team1Player1Select'),
-                document.getElementById('team1Player2Select'),
-                document.getElementById('team2Player1Select'),
-                document.getElementById('team2Player2Select')
-            ];
-
-            const optionsHtml = '<option value="">Select Player</option>' + players.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
-
-            selects.forEach(select => {
-                select.innerHTML = optionsHtml;
-            });
-        }
-        
-        function populatePlayerSelectsForSingleGame() {
-            const player1Select = document.getElementById('singlePlayer1Select');
-            const player2Select = document.getElementById('singlePlayer2Select');
-            
-            player1Select.innerHTML = '<option value="">Select Player 1</option>';
-            player2Select.innerHTML = '<option value="">Select Player 2</option>';
-            
-            players.forEach(player => {
-                player1Select.innerHTML += `<option value="${player.name}">${player.name}</option>`;
-                player2Select.innerHTML += `<option value="${player.name}">${player.name}</option>`;
+            teams.forEach(team => {
+                const teamDisplay = `${team.player1} & ${team.player2}`;
+                team1Select.innerHTML += `<option value="${team.id}">${teamDisplay}</option>`;
+                team2Select.innerHTML += `<option value="${team.id}">${teamDisplay}</option>`;
             });
         }
 
         function startNewGame() {
             showSection('live');
-        }
-
-        function findOrCreateTeam(player1Name, player2Name) {
-            // Sort names to handle (A,B) and (B,A) as the same team
-            const sortedNames = [player1Name, player2Name].sort();
-            const p1 = sortedNames[0];
-            const p2 = sortedNames[1];
-
-            let team = teams.find(t => t.player1 === p1 && t.player2 === p2);
-
-            if (team) {
-                return team; // Found existing team
-            } else {
-                // Create a new team if it doesn't exist
-                const newTeam = {
-                    id: generateId(),
-                    player1: p1,
-                    player2: p2,
-                    created: new Date().toISOString()
-                };
-                teams.push(newTeam);
-                localStorage.setItem('dominoTeams', JSON.stringify(teams));
-                return newTeam;
-            }
-        }
-
-
-        function startGame() {
-            bestOf = parseInt(document.getElementById('bestOfSelect').value);
-            matchWins1 = 0;
-            matchWins2 = 0;
-            matchOver = false;
-            stopTurnTimer();
-
-            if (currentGameMode === 'team') {
-                const p1_1 = document.getElementById('team1Player1Select').value;
-                const p1_2 = document.getElementById('team1Player2Select').value;
-                const p2_1 = document.getElementById('team2Player1Select').value;
-                const p2_2 = document.getElementById('team2Player2Select').value;
-                
-                const allPlayers = [p1_1, p1_2, p2_1, p2_2];
-                if (allPlayers.some(p => !p)) {
-                    alert('Please select all four players.');
-                    return;
-                }
-
-                if (new Set(allPlayers).size !== 4) {
-                    alert('Each player must be unique. Please select four different players.');
-                    return;
-                }
-                
-                const team1 = findOrCreateTeam(p1_1, p1_2);
-                const team2 = findOrCreateTeam(p2_1, p2_2);
-                
-                currentGame = {
-                    gameMode: 'team',
-                    team1: team1,
-                    team2: team2,
-                    score1: 0,
-                    score2: 0,
-                    history: [],
-                    startTime: new Date(),
-                    ended: false
-                };
-                
-                document.getElementById('team1Players').textContent = `${team1.player1} & ${team1.player2}`;
-                document.getElementById('team2Players').textContent = `${team2.player1} & ${team2.player2}`;
-
-            } else { // Single mode
-                const player1Name = document.getElementById('singlePlayer1Select').value;
-                const player2Name = document.getElementById('singlePlayer2Select').value;
-                
-                if (!player1Name || !player2Name) {
-                    alert('Please select both players');
-                    return;
-                }
-                 if (player1Name === player2Name) {
-                    alert('Please select different players');
-                    return;
-                }
-                
-                currentGame = {
-                    gameMode: 'single',
-                    player1: player1Name,
-                    player2: player2Name,
-                    score1: 0,
-                    score2: 0,
-                    history: [],
-                    startTime: new Date(),
-                    ended: false
-                };
-                
-                document.getElementById('team1Players').textContent = player1Name;
-                document.getElementById('team2Players').textContent = player2Name;
-            }
-            
-            document.getElementById('gameSetup').classList.add('hidden');
-            document.getElementById('liveGame').classList.remove('hidden');
-            
-            // Clear custom score inputs
-            document.getElementById('customScore1').value = '';
-            document.getElementById('customScore2').value = '';
-            
-            enableScoreButtons();
-            updateGameDisplay();
-            updateMatchScoreDisplay();
         }
 
         function updateGameDisplay() {
@@ -1669,7 +1656,13 @@
         }
 
         function addScore(team, points) {
-            if (!currentGame || currentGame.ended) return;
+            if (!currentGame) return;
+            
+            // Check if game has already ended
+            if (currentGame.ended) {
+                alert("This game has ended. Please start a new game.");
+                return;
+            }
             
             const previousScore1 = currentGame.score1;
             const previousScore2 = currentGame.score2;
@@ -1703,52 +1696,36 @@
             
             updateGameDisplay();
             
-            // Check for win/petaroll conditions
+            // Check for PETAROLL conditions
             const score1 = currentGame.score1;
             const score2 = currentGame.score2;
             
+            // Check if either team has reached 75 while the other has 0 (PETAROLL)
             if ((score1 >= 75 && score2 === 0) || (score2 >= 75 && score1 === 0)) {
-                showFinalScoreConfirmation('petaroll');
-            } else if ((score1 >= 150 && score2 < 75) || (score2 >= 150 && score1 < 75)) {
-                showFinalScoreConfirmation('petaroll');
-            } else if (score1 >= 150 || score2 >= 150) {
-                showFinalScoreConfirmation('regular');
-            }
-        }
-
-        function showFinalScoreConfirmation(winType) {
-            pendingWinType = winType;
-            document.getElementById('gameControls').classList.add('hidden');
-            document.getElementById('confirmScoreContainer').classList.remove('hidden');
-            
-            const confirmBtn = document.getElementById('confirmScoreBtn');
-            confirmBtn.onclick = () => {
-                if (pendingWinType === 'petaroll') {
+                // It's a PETAROLL - end the game immediately
+                setTimeout(() => {
                     declarePetaroll();
-                } else {
-                    declareWinner();
-                }
-            };
+                }, 500);
+                return;
+            }
             
-            const correctBtn = document.getElementById('correctScoreBtn');
-            correctBtn.onclick = () => {
-                hideFinalScoreConfirmation();
-            };
-        }
-
-        function hideFinalScoreConfirmation() {
-            document.getElementById('gameControls').classList.remove('hidden');
-            document.getElementById('confirmScoreContainer').classList.add('hidden');
-            pendingWinType = null;
+            // Check for regular win (150 points)
+            if (score1 >= 150 || score2 >= 150) {
+                // Check if it's a PETAROLL (winner has 150+ and loser has less than 75)
+                if ((score1 >= 150 && score2 < 75) || (score2 >= 150 && score1 < 75)) {
+                    // It's a PETAROLL
+                    setTimeout(() => {
+                        declarePetaroll();
+                    }, 500);
+                } else {
+                    // Regular win
+                    setTimeout(declareWinner, 500);
+                }
+            }
         }
 
         function undoScore(team) {
             if (!currentGame || currentGame.history.length === 0) return;
-
-            // If a win is pending confirmation, cancel it
-            if (pendingWinType) {
-                hideFinalScoreConfirmation();
-            }
             
             let teamName;
             if (currentGame.gameMode === 'team') {
@@ -1817,8 +1794,6 @@
         // New function specifically for PETAROLL
         function declarePetaroll() {
             if (!currentGame) return;
-
-            playPetarollEffects();
             
             currentGame.ended = true;
             
@@ -1850,14 +1825,12 @@
                 
                 games.push(gameRecord);
                 localStorage.setItem('dominoGames', JSON.stringify(games));
-                checkAchievements();
 
                 winnerName = `${winner.player1} & ${winner.player2}`;
                 loserName = `${loser.player1} & ${loser.player2}`;
 
                 let messageHtml = `
                     <div class="text-3xl font-bold text-orange-600 mb-4">🔥 PETAROLL! 🔥</div>
-                    <div class="text-lg font-bold mb-2">PETAROLL PETAROLL!</div>
                     <div class="text-xl mb-2">
                         <strong>${winnerName}</strong>
                     </div>
@@ -1903,11 +1876,9 @@
                 
                 games.push(gameRecord);
                 localStorage.setItem('dominoGames', JSON.stringify(games));
-                checkAchievements();
 
                 let messageHtml = `
                     <div class="text-3xl font-bold text-orange-600 mb-4">🔥 PETAROLL! 🔥</div>
-                    <div class="text-lg font-bold mb-2">PETAROLL PETAROLL!</div>
                     <div class="text-xl mb-2">
                         <strong>${winnerName}</strong>
                     </div>
@@ -1935,13 +1906,15 @@
                 matchWins2 += 2;
             }
             updateMatchScoreDisplay();
-            const requiredWins = bestOf;
+            const requiredWins = Math.ceil(bestOf / 2);
             let seriesInfo = `<div class="mt-2">Series Score: ${matchWins1} - ${matchWins2}</div>`;
             if (matchWins1 >= requiredWins || matchWins2 >= requiredWins) {
                 matchOver = true;
-                seriesInfo += `<div class="mt-2 font-bold">${winnerName} wins first to ${bestOf}!</div>`;
+                seriesInfo += `<div class="mt-2 font-bold">${winnerName} wins the best of ${bestOf}!</div>`;
+                document.getElementById('playAgainBtn').classList.add('hidden');
+            } else {
+                document.getElementById('playAgainBtn').classList.remove('hidden');
             }
-            document.getElementById('playAgainBtn').classList.remove('hidden');
             document.getElementById('winMessage').innerHTML += seriesInfo;
 
             // Refresh all data displays
@@ -1951,14 +1924,11 @@
             
             // Disable score buttons to prevent further scoring
             disableScoreButtons();
-            hideFinalScoreConfirmation();
         }
 
         // Function to disable all score buttons
         function disableScoreButtons() {
-            // FIX: The original selector was too broad and was disabling buttons in the win modal.
-            // Scoping it to #liveGame ensures only the score-related buttons are affected.
-            const buttons = document.querySelectorAll('.score-btn, .custom-score-input, #liveGame .flex.justify-center.items-center button');
+            const buttons = document.querySelectorAll('.score-btn');
             buttons.forEach(button => {
                 button.disabled = true;
                 button.classList.add('opacity-50', 'cursor-not-allowed');
@@ -1967,8 +1937,7 @@
 
         // Function to enable all score buttons
         function enableScoreButtons() {
-            // FIX: The original selector was too broad. Scoping it to #liveGame to match the disable function.
-            const buttons = document.querySelectorAll('.score-btn, .custom-score-input, #liveGame .flex.justify-center.items-center button');
+            const buttons = document.querySelectorAll('.score-btn');
             buttons.forEach(button => {
                 button.disabled = false;
                 button.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -1977,8 +1946,6 @@
 
         function declareWinner() {
             if (!currentGame) return;
-
-            playEndGameSound();
 
             currentGame.ended = true;
 
@@ -2032,7 +1999,6 @@
             
             games.push(gameRecord);
             localStorage.setItem('dominoGames', JSON.stringify(games));
-            checkAchievements();
 
             // Update match series
             if (currentGame.score1 > currentGame.score2) {
@@ -2041,13 +2007,15 @@
                 matchWins2++;
             }
             updateMatchScoreDisplay();
-            const requiredWins = bestOf;
+            const requiredWins = Math.ceil(bestOf / 2);
             let seriesInfo = `<div class="mt-2">Series Score: ${matchWins1} - ${matchWins2}</div>`;
             if (matchWins1 >= requiredWins || matchWins2 >= requiredWins) {
                 matchOver = true;
-                seriesInfo += `<div class="mt-2 font-bold">${winnerName} wins first to ${bestOf}!</div>`;
+                seriesInfo += `<div class="mt-2 font-bold">${winnerName} wins the best of ${bestOf}!</div>`;
+                document.getElementById('playAgainBtn').classList.add('hidden');
+            } else {
+                document.getElementById('playAgainBtn').classList.remove('hidden');
             }
-            document.getElementById('playAgainBtn').classList.remove('hidden');
             document.getElementById('winMessage').innerHTML = `
                 <strong>${winnerName}</strong> wins!<br>
                 Final Score: ${winnerScore} - ${loserScore}
@@ -2060,17 +2028,12 @@
             
             // Disable score buttons
             disableScoreButtons();
-            hideFinalScoreConfirmation();
         }
 
         function playAgain() {
             if (matchOver) {
-                matchWins1 = 0;
-                matchWins2 = 0;
-                matchOver = false;
-                resetGame();
-                updateMatchScoreDisplay();
                 closeWinModal();
+                endGame();
             } else {
                 resetGame();
                 closeWinModal();
@@ -2088,9 +2051,7 @@
                 currentGame.history = [];
                 currentGame.ended = false;
                 document.getElementById('petarollAlert').classList.add('hidden');
-                hideFinalScoreConfirmation();
-                stopTurnTimer();
-
+                
                 // Clear custom score inputs
                 document.getElementById('customScore1').value = '';
                 document.getElementById('customScore2').value = '';
@@ -2106,96 +2067,23 @@
             matchWins1 = 0;
             matchWins2 = 0;
             matchOver = false;
-            stopTurnTimer();
             updateMatchScoreDisplay();
             document.getElementById('gameSetup').classList.add('hidden');
             document.getElementById('liveGame').classList.add('hidden');
             document.getElementById('scoreHistory').innerHTML = '';
             document.getElementById('petarollAlert').classList.add('hidden');
-            hideFinalScoreConfirmation();
             
             // Clear input fields
+            document.getElementById('player1Input').value = '';
+            document.getElementById('player2Input').value = '';
+            document.getElementById('player1Select').value = '';
+            document.getElementById('player2Select').value = '';
             document.getElementById('customScore1').value = '';
             document.getElementById('customScore2').value = '';
             
             // Reset to game mode selection
             loadLiveSection();
         }
-        
-        // Players Section
-        function loadPlayers() {
-            const playersHtml = players.map(player => `
-                <div class="domino-card p-4 flex justify-between items-center">
-                    <span class="font-medium text-lg">${player.name}</span>
-                    <button onclick="deletePlayer('${player.id}')" class="text-red-500 hover:text-red-700">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            `).join('');
-            document.getElementById('playersList').innerHTML = playersHtml || '<div class="col-span-full text-center text-gray-500 dark:text-gray-400">No players created yet</div>';
-        }
-
-        function showCreatePlayerForm() {
-            document.getElementById('createPlayerForm').classList.remove('hidden');
-        }
-
-        function hideCreatePlayerForm() {
-            document.getElementById('createPlayerForm').classList.add('hidden');
-            document.getElementById('newPlayerName').value = '';
-        }
-
-        function createPlayer() {
-            const playerNameInput = document.getElementById('newPlayerName');
-            const playerName = playerNameInput.value.trim();
-
-            if (!playerName) {
-                alert('Player name cannot be empty.');
-                return;
-            }
-
-            const isDuplicate = players.some(p => p.name.toLowerCase() === playerName.toLowerCase());
-            if (isDuplicate) {
-                alert('A player with this name already exists.');
-                return;
-            }
-
-            const newPlayer = {
-                id: generateId(),
-                name: playerName
-            };
-
-            players.push(newPlayer);
-            localStorage.setItem('dominoPlayers', JSON.stringify(players));
-            
-            hideCreatePlayerForm();
-            loadPlayers();
-            updateAllPlayerDropdowns();
-        }
-
-        function deletePlayer(playerId) {
-            const playerToDelete = players.find(p => p.id === playerId);
-            if (!playerToDelete) return;
-
-            // Check if player is in any team
-            const isInTeam = teams.some(t => t.player1 === playerToDelete.name || t.player2 === playerToDelete.name);
-            if (isInTeam) {
-                alert('Cannot delete this player. They are part of an existing team. Please remove the team first.');
-                return;
-            }
-
-            if (confirm(`Are you sure you want to delete ${playerToDelete.name}?`)) {
-                players = players.filter(p => p.id !== playerId);
-                localStorage.setItem('dominoPlayers', JSON.stringify(players));
-                loadPlayers();
-                updateAllPlayerDropdowns();
-            }
-        }
-        
-        function updateAllPlayerDropdowns() {
-            populatePlayerSelectsForTeamCreation();
-            populatePlayerSelectsForSingleGame();
-        }
-
 
         // Teams section
         function loadTeams() {
@@ -2252,64 +2140,8 @@
         }
 
         function showCreateTeam() {
-            populatePlayerSelectsForTeamCreation();
             document.getElementById('createTeamForm').classList.remove('hidden');
-        }
-        
-        function populatePlayerSelectsForTeamCreation() {
-            const player1Select = document.getElementById('teamPlayer1Select');
-            const player2Select = document.getElementById('teamPlayer2Select');
-            
-            player1Select.innerHTML = '<option value="">Select Player 1</option>';
-            player2Select.innerHTML = '<option value="">Select Player 2</option>';
-            
-            players.forEach(player => {
-                player1Select.innerHTML += `<option value="${player.name}">${player.name}</option>`;
-                player2Select.innerHTML += `<option value="${player.name}">${player.name}</option>`;
-            });
-        }
-
-        function hideCreateTeam() {
-            document.getElementById('createTeamForm').classList.add('hidden');
-        }
-
-        function createTeam() {
-            const player1Name = document.getElementById('teamPlayer1Select').value;
-            const player2Name = document.getElementById('teamPlayer2Select').value;
-            
-            if (!player1Name || !player2Name) {
-                alert('Please select both players');
-                return;
-            }
-            
-            if (player1Name === player2Name) {
-                alert('Please select two different players to form a team.');
-                return;
-            }
-            
-            // Check for duplicate team
-            const isDuplicate = teams.some(team => 
-                (team.player1 === player1Name && team.player2 === player2Name) ||
-                (team.player1 === player2Name && team.player2 === player1Name)
-            );
-            
-            if (isDuplicate) {
-                alert('This team already exists!');
-                return;
-            }
-            
-            const newTeam = {
-                id: generateId(),
-                player1: player1Name,
-                player2: player2Name,
-                created: new Date().toISOString()
-            };
-            
-            teams.push(newTeam);
-            localStorage.setItem('dominoTeams', JSON.stringify(teams));
-            
-            hideCreateTeam();
-            loadTeams();
+            populatePlayerSelects();
         }
 
         function deleteTeam(teamId) {
@@ -2317,6 +2149,7 @@
                 teams = teams.filter(t => t.id !== teamId);
                 localStorage.setItem('dominoTeams', JSON.stringify(teams));
                 loadTeams();
+                populateTeamSelects();
             }
         }
 
@@ -2333,10 +2166,10 @@
             // Update tab states
             document.querySelectorAll('.leaderboard-tab').forEach(tab => {
                 tab.classList.remove('bg-blue-500', 'text-white');
-                tab.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
+                tab.classList.add('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
             });
-
-            document.querySelector(`[onclick="showLeaderboard('${period}')"]`).classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
+            
+            document.querySelector(`[onclick="showLeaderboard('${period}')"]`).classList.remove('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
             document.querySelector(`[onclick="showLeaderboard('${period}')"]`).classList.add('bg-blue-500', 'text-white');
             
             // Ensure we have the latest data
@@ -2407,15 +2240,15 @@
                 .sort((a, b) => {
                     const aTotal = a.wins + a.losses;
                     const bTotal = b.wins + b.losses;
-                    const aWinRate = aTotal > 0 ? a.wins / aTotal : 0;
-                    const bWinRate = bTotal > 0 ? b.wins / bTotal : 0;
+                    const aWinRate = a.wins / aTotal;
+                    const bWinRate = b.wins / bTotal;
                     if (aWinRate !== bWinRate) return bWinRate - aWinRate;
                     return b.wins - a.wins;
                 });
             
             const rankingsHtml = rankings.map((stat, index) => {
                 const total = stat.wins + stat.losses;
-                const winRate = total > 0 ? ((stat.wins / total) * 100).toFixed(1) : '0.0';
+                const winRate = ((stat.wins / total) * 100).toFixed(1);
                 const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
                 
                 return `
@@ -2448,16 +2281,28 @@
             const filteredGames = filterGamesByPeriod(games, period);
             const playerStats = {};
             
-            // Initialize stats for all known players
-            players.forEach(player => {
-                playerStats[player.name] = { name: player.name, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
+            // Collect all unique players from teams
+            teams.forEach(team => {
+                if (!playerStats[team.player1]) {
+                    playerStats[team.player1] = { name: team.player1, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0, teams: [] };
+                }
+                if (!playerStats[team.player2]) {
+                    playerStats[team.player2] = { name: team.player2, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0, teams: [] };
+                }
+                playerStats[team.player1].teams.push(`${team.player1} & ${team.player2}`);
+                playerStats[team.player2].teams.push(`${team.player1} & ${team.player2}`);
             });
             
             // Calculate wins/losses for each player
             filteredGames.forEach(game => {
                 if (game.gameMode === 'single') {
-                    if (!playerStats[game.winner]) playerStats[game.winner] = { name: game.winner, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
-                    if (!playerStats[game.loser]) playerStats[game.loser] = { name: game.loser, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
+                    // Handle single player games
+                    if (!playerStats[game.winner]) {
+                        playerStats[game.winner] = { name: game.winner, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0, teams: ['Solo'] };
+                    }
+                    if (!playerStats[game.loser]) {
+                        playerStats[game.loser] = { name: game.loser, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0, teams: ['Solo'] };
+                    }
                     
                     playerStats[game.winner].wins += game.gameValue || 1;
                     if (game.isPetaroll) playerStats[game.winner].petarolls++;
@@ -2465,25 +2310,30 @@
                     playerStats[game.loser].losses += game.gameValue || 1;
                     if (game.isPetaroll) playerStats[game.loser].gotPetarolled++;
                 } else {
+                    // Handle team games
                     const winnerTeam = teams.find(t => t.id === game.winner);
                     const loserTeam = teams.find(t => t.id === game.loser);
                     
                     if (winnerTeam) {
-                        [winnerTeam.player1, winnerTeam.player2].forEach(pName => {
-                            if (playerStats[pName]) {
-                                playerStats[pName].wins += game.gameValue || 1;
-                                if (game.isPetaroll) playerStats[pName].petarolls++;
-                            }
-                        });
+                        if (playerStats[winnerTeam.player1]) {
+                            playerStats[winnerTeam.player1].wins += game.gameValue || 1;
+                            if (game.isPetaroll) playerStats[winnerTeam.player1].petarolls++;
+                        }
+                        if (playerStats[winnerTeam.player2]) {
+                            playerStats[winnerTeam.player2].wins += game.gameValue || 1;
+                            if (game.isPetaroll) playerStats[winnerTeam.player2].petarolls++;
+                        }
                     }
                     
                     if (loserTeam) {
-                         [loserTeam.player1, loserTeam.player2].forEach(pName => {
-                            if (playerStats[pName]) {
-                                playerStats[pName].losses += game.gameValue || 1;
-                                if (game.isPetaroll) playerStats[pName].gotPetarolled++;
-                            }
-                        });
+                        if (playerStats[loserTeam.player1]) {
+                            playerStats[loserTeam.player1].losses += game.gameValue || 1;
+                            if (game.isPetaroll) playerStats[loserTeam.player1].gotPetarolled++;
+                        }
+                        if (playerStats[loserTeam.player2]) {
+                            playerStats[loserTeam.player2].losses += game.gameValue || 1;
+                            if (game.isPetaroll) playerStats[loserTeam.player2].gotPetarolled++;
+                        }
                     }
                 }
             });
@@ -2493,15 +2343,15 @@
                 .sort((a, b) => {
                     const aTotal = a.wins + a.losses;
                     const bTotal = b.wins + b.losses;
-                    const aWinRate = aTotal > 0 ? a.wins / aTotal : 0;
-                    const bWinRate = bTotal > 0 ? b.wins / bTotal : 0;
+                    const aWinRate = a.wins / aTotal;
+                    const bWinRate = b.wins / bTotal;
                     if (aWinRate !== bWinRate) return bWinRate - aWinRate;
                     return b.wins - a.wins;
                 });
             
             const playersHtml = playerRankings.slice(0, 10).map((stat, index) => {
                 const total = stat.wins + stat.losses;
-                const winRate = total > 0 ? ((stat.wins / total) * 100).toFixed(1) : '0.0';
+                const winRate = ((stat.wins / total) * 100).toFixed(1);
                 const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
                 
                 return `
@@ -2539,7 +2389,7 @@
                 gamesByDate[date] += game.gameValue || 1;
             });
             
-            const dates = Object.keys(gamesByDate).sort((a,b) => new Date(a) - new Date(b));
+            const dates = Object.keys(gamesByDate).sort();
             const counts = dates.map(date => gamesByDate[date]);
             
             // Destroy existing chart if it exists
@@ -2575,138 +2425,6 @@
             });
         }
 
-        // Fixed timer functions
-        function startTurnTimer() {
-            // Stop any existing timer first
-            stopTurnTimer();
-            
-            // Get the time limit from input
-            let timeLimit = parseInt(document.getElementById('turnTimeInput').value);
-            
-            // Validate and set default if needed
-            if (!timeLimit || timeLimit <= 0) {
-                timeLimit = 60;
-            }
-            
-            // Enforce maximum of 60 seconds
-            timeLimit = Math.min(timeLimit, 60);
-            
-            // Set the remaining time
-            remainingTime = timeLimit;
-            
-            // Update the display immediately
-            updateTurnTimerDisplay();
-            
-            // Start the interval
-            turnTimer = setInterval(() => {
-                remainingTime--;
-                updateTurnTimerDisplay();
-                
-                if (remainingTime <= 0) {
-                    stopTurnTimer();
-                    // Play a sound or show alert
-                    playTimerEndSound();
-                    alert("Time's up!");
-                }
-            }, 1000);
-        }
-
-        function stopTurnTimer() {
-            if (turnTimer) {
-                clearInterval(turnTimer);
-                turnTimer = null;
-            }
-            remainingTime = 0;
-            updateTurnTimerDisplay();
-        }
-
-        function updateTurnTimerDisplay() {
-            const display = document.getElementById('turnTimerDisplay');
-            if (display) {
-                if (remainingTime > 0) {
-                    // Format the time nicely
-                    const minutes = Math.floor(remainingTime / 60);
-                    const seconds = remainingTime % 60;
-                    const timeString = minutes > 0 
-                        ? `${minutes}:${seconds.toString().padStart(2, '0')}` 
-                        : `${seconds}s`;
-                    
-                    display.textContent = timeString;
-                    
-                    // Add visual feedback based on remaining time
-                    display.classList.remove('text-green-600', 'text-yellow-600', 'text-red-600', 'animate-pulse');
-                    if (remainingTime > 30) {
-                        display.classList.add('text-green-600');
-                    } else if (remainingTime > 10) {
-                        display.classList.add('text-yellow-600');
-                    } else {
-                        display.classList.add('text-red-600', 'animate-pulse');
-                    }
-                } else {
-                    display.textContent = '--';
-                    display.classList.remove('text-green-600', 'text-yellow-600', 'text-red-600', 'animate-pulse');
-                }
-            }
-        }
-
-        // Optional: Add a function to play a sound when timer ends
-        function playTimerEndSound() {
-            // You can add an audio element to your HTML and play it here
-            // For now, we'll just use the browser's default beep if available
-            try {
-                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE');
-                audio.play();
-            } catch (e) {
-                // Silently fail if audio doesn't work
-            }
-        }
-
-        // Play a short ding when the game ends
-        function playEndGameSound() {
-            try {
-                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE');
-                audio.play();
-            } catch (e) {
-                // Ignore errors
-            }
-        }
-
-        // Trigger fireworks and announce PETAROLL
-        function playPetarollEffects() {
-            playEndGameSound();
-            try {
-                const utter = new SpeechSynthesisUtterance('PETAROLL PETAROLL');
-                speechSynthesis.speak(utter);
-            } catch (e) {
-                // Ignore speech errors
-            }
-            showFireworks();
-        }
-
-        // Simple fireworks effect using canvas-confetti
-        function showFireworks() {
-            if (typeof confetti !== 'function') return;
-            const duration = 2000;
-            const end = Date.now() + duration;
-            (function frame() {
-                confetti({
-                    particleCount: 5,
-                    angle: 60,
-                    spread: 55,
-                    origin: { x: 0 }
-                });
-                confetti({
-                    particleCount: 5,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1 }
-                });
-                if (Date.now() < end) {
-                    requestAnimationFrame(frame);
-                }
-            })();
-        }
-
         function filterGamesByPeriod(games, period) {
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -2717,203 +2435,4 @@
                 case 'weekly':
                     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
                     return games.filter(game => new Date(game.date) >= weekAgo);
-                case 'monthly':
-                    const monthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
-                    return games.filter(game => new Date(game.date) >= monthAgo);
-                case 'alltime':
-                default:
-                    return games;
-            }
-        }
-
-        // Voice recognition setup
-        let recognition;
-        let pendingVoiceAction = null;
-        function initVoice() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                console.warn('SpeechRecognition not supported');
-                return;
-            }
-            recognition = new SpeechRecognition();
-            recognition.lang = 'en-US';
-            recognition.interimResults = false;
-            recognition.onresult = (e) => {
-                const transcript = e.results[0][0].transcript;
-                const output = document.getElementById('voiceOutput');
-                if (output) output.textContent = `Heard: "${transcript}"`;
-                parseVoiceCommand(transcript);
-            };
-            recognition.onend = () => {
-                const btn = document.getElementById('micBtn');
-                if (btn && btn.classList.contains('bg-green-600')) {
-                    // Keep listening if the mic is still active
-                    recognition.start();
-                }
-            };
-        }
-
-        function toggleMic(start) {
-            if (!recognition) return;
-            const btn = document.getElementById('micBtn');
-            const begin = start !== undefined ? start : !btn.classList.contains('bg-green-600');
-            if (begin) {
-                recognition.start();
-                btn.classList.remove('bg-purple-500');
-                btn.classList.add('bg-green-600');
-                btn.innerHTML = '<i class="fas fa-microphone-alt mr-2 animate-pulse"></i>Listening';
-            } else {
-                recognition.stop();
-                btn.classList.remove('bg-green-600');
-                btn.classList.add('bg-purple-500');
-                btn.innerHTML = '<i class="fas fa-microphone mr-2"></i>Voice';
-            }
-        }
-
-        function showVoiceConfirmation(message, action) {
-            pendingVoiceAction = action;
-            const output = document.getElementById('voiceOutput');
-            if (!output) return;
-
-            const micBtn = document.getElementById('micBtn');
-            const wasActive = micBtn && micBtn.classList.contains('bg-green-600');
-            if (wasActive) toggleMic(false); // Pause listening during confirmation
-
-            // Create a more prominent confirmation box
-            output.innerHTML = `
-                <div class="p-4 bg-blue-100 dark:bg-blue-800 border-2 border-blue-400 dark:border-blue-600 rounded-lg shadow-lg text-center">
-                    <p class="font-semibold text-blue-800 dark:text-blue-100 mb-3">${message}</p>
-                    <div class="flex justify-center space-x-4">
-                        <button id="confirmVoiceAction" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-5 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                            <i class="fas fa-check mr-2"></i>Confirm
-                        </button>
-                        <button id="cancelVoiceAction" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-5 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                            <i class="fas fa-times mr-2"></i>Cancel
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('confirmVoiceAction').onclick = () => {
-                if (pendingVoiceAction) pendingVoiceAction();
-                pendingVoiceAction = null;
-                output.innerHTML = ''; // Clear the confirmation box
-                if (wasActive) toggleMic(true); // Resume listening if it was active
-            };
-            
-            document.getElementById('cancelVoiceAction').onclick = () => {
-                pendingVoiceAction = null;
-                output.innerHTML = ''; // Clear the confirmation box
-                if (wasActive) toggleMic(true); // Resume listening if it was active
-            };
-        }
-
-        function parseNumberFromText(str) {
-            const direct = parseInt(str, 10);
-            if (!isNaN(direct)) return direct;
-
-            const words = str.trim().split(/[\s-]+/);
-            const map = {
-                zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5,
-                six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
-                eleven: 11, twelve: 12, thirteen: 13, fourteen: 14,
-                fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18,
-                nineteen: 19, twenty: 20, thirty: 30, forty: 40,
-                fifty: 50, sixty: 60, seventy: 70, eighty: 80,
-                ninety: 90, hundred: 100
-            };
-
-            let total = 0;
-            let current = 0;
-            words.forEach(w => {
-                if (w === 'hundred') {
-                    current *= 100;
-                } else if (map[w] !== undefined) {
-                    current += map[w];
-                }
-            });
-            total += current;
-            return total;
-        }
-
-        function highlightInput(elementId) {
-            const el = document.getElementById(elementId);
-            if (el) {
-                el.classList.add('border-green-500', 'border-2', 'shadow-lg');
-                setTimeout(() => {
-                    el.classList.remove('border-green-500', 'border-2', 'shadow-lg');
-                }, 2000); // Highlight for 2 seconds
-            }
-        }
-
-        function parseVoiceCommand(text) {
-            text = text.toLowerCase();
-            const beat = text.match(/(.+) beat (.+) ([a-z0-9-\s]+) to ([a-z0-9-\s]+)/);
-            if (beat) {
-                const score1 = parseNumberFromText(beat[3]);
-                const score2 = parseNumberFromText(beat[4]);
-                if (currentGame) {
-                    currentGame.score1 = score1;
-                    currentGame.score2 = score2;
-                    updateGameDisplay();
-                    if (score1 >= 150 || score2 >= 150) {
-                        setTimeout(declareWinner, 500);
-                    }
-                }
-                return;
-            }
-            let m;
-            
-            // Updated logic: "team 1 add 25" or "blue 25" puts "25" in the custom input
-            m = text.match(/(?:team (?:1|one|a) add|blue) ([a-z0-9-\s]+)/);
-            if (m) {
-                const val = parseNumberFromText(m[1]);
-                if (!isNaN(val)) {
-                    document.getElementById('customScore1').value = val;
-                    highlightInput('customScore1');
-                }
-                return;
-            }
-
-            // Updated logic: "team 2 add 25" or "red 25" or "read 25" puts "25" in the custom input
-            m = text.match(/(?:team (?:2|two|b) add|red|read) ([a-z0-9-\s]+)/);
-            if (m) {
-                const val = parseNumberFromText(m[1]);
-                 if (!isNaN(val)) {
-                    document.getElementById('customScore2').value = val;
-                    highlightInput('customScore2');
-                }
-                return;
-            }
-
-            if (text.includes('undo team one') || text.includes('undo team 1') || text.includes('undo team a')) {
-                showVoiceConfirmation('Undo last Team 1 score?', () => undoScore(1));
-                return;
-            }
-            if (text.includes('undo team two') || text.includes('undo team 2') || text.includes('undo team b')) {
-                showVoiceConfirmation('Undo last Team 2 score?', () => undoScore(2));
-                return;
-            }
-            if (text.includes('end game')) { 
-                showVoiceConfirmation('Are you sure you want to end the current game?', () => endGame());
-                return; 
-            }
-            if (text.includes('reset game')) { 
-                showVoiceConfirmation('Are you sure you want to reset the current game score?', () => resetGame());
-                return; 
-            }
-            if (text.includes('dark mode')) { document.getElementById('themeToggle').click(); return; }
-        }
-
-        // Initialize app
-        function initApp() {
-            initTheme();
-            initVoice();
-            showSection('home');
-        }
-
-        // Start the app
-        initApp();
-    </script>
-</body>
-</html>
+                case
