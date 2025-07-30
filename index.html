@@ -824,6 +824,12 @@
         let remainingTime = 0;
         let editingGameId = null;
         let achievements = JSON.parse(localStorage.getItem('dominoAchievements')) || {};
+        function generateId() {
+            if (window.crypto && crypto.randomUUID) {
+                return crypto.randomUUID();
+            }
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
+        }
         const achievementDefinitions = {
             tenWins: '🏅 Ten Wins',
             firstPetaroll: '🔥 First PETAROLL'
@@ -1466,7 +1472,7 @@
             } else {
                 // Create a new team if it doesn't exist
                 const newTeam = {
-                    id: Date.now().toString(),
+                    id: generateId(),
                     player1: p1,
                     player2: p2,
                     created: new Date().toISOString()
@@ -2154,7 +2160,7 @@
             }
 
             const newPlayer = {
-                id: Date.now().toString(),
+                id: generateId(),
                 name: playerName
             };
 
@@ -2293,7 +2299,7 @@
             }
             
             const newTeam = {
-                id: Date.now().toString(),
+                id: generateId(),
                 player1: player1Name,
                 player2: player2Name,
                 created: new Date().toISOString()
