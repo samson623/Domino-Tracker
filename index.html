@@ -962,47 +962,6 @@
             }
         }
         
-        function getSanitizedData() {
-            const canonicalTeamsMap = new Map();
-            const gamesCopy = JSON.parse(JSON.stringify(games)); 
-
-            teams.forEach(team => {
-                const sortedNames = [team.player1, team.player2].sort();
-                const key = sortedNames.join('-');
-                if (!canonicalTeamsMap.has(key)) {
-                    canonicalTeamsMap.set(key, {
-                        id: team.id, 
-                        player1: sortedNames[0],
-                        player2: sortedNames[1],
-                        originalIds: []
-                    });
-                }
-                canonicalTeamsMap.get(key).originalIds.push(team.id);
-            });
-
-            const canonicalTeams = Array.from(canonicalTeamsMap.values());
-            const idMap = new Map(); 
-
-            canonicalTeams.forEach(cTeam => {
-                cTeam.originalIds.forEach(oldId => {
-                    idMap.set(oldId, cTeam.id);
-                });
-            });
-
-            gamesCopy.forEach(game => {
-                if (game.gameMode === 'team') {
-                    if (idMap.has(game.winner)) {
-                        game.winner = idMap.get(game.winner);
-                    }
-                    if (idMap.has(game.loser)) {
-                        game.loser = idMap.get(game.loser);
-                    }
-                }
-            });
-
-            return { canonicalTeams, sanitizedGames: gamesCopy };
-        }
-
         // Home section
         function loadHome() {
             loadDailyTeamStats();
@@ -1012,12 +971,11 @@
         }
 
         function loadDailyTeamStats() {
-            const { canonicalTeams, sanitizedGames } = getSanitizedData();
             const today = new Date().toDateString();
-            const todayGames = sanitizedGames.filter(g => new Date(g.date).toDateString() === today);
+            const todayGames = games.filter(g => new Date(g.date).toDateString() === today);
             
             const teamStats = {};
-            canonicalTeams.forEach(team => {
+            teams.forEach(team => {
                 const teamName = `${team.player1} & ${team.player2}`;
                 teamStats[team.id] = { name: teamName, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
             });
@@ -1070,8 +1028,7 @@
         }
 
         function loadRecentGames() {
-            const { canonicalTeams, sanitizedGames } = getSanitizedData();
-            const recentGames = sanitizedGames.slice(-5).reverse();
+            const recentGames = games.slice(-5).reverse();
             const recentHtml = recentGames.map(game => {
                 let winnerName, loserName;
                 
@@ -1079,8 +1036,8 @@
                     winnerName = game.winner;
                     loserName = game.loser;
                 } else {
-                    const winnerTeam = canonicalTeams.find(t => t.id === game.winner);
-                    const loserTeam = canonicalTeams.find(t => t.id === game.loser);
+                    const winnerTeam = teams.find(t => t.id === game.winner);
+                    const loserTeam = teams.find(t => t.id === game.loser);
                     winnerName = winnerTeam ? `${winnerTeam.player1} & ${winnerTeam.player2}` : 'Unknown';
                     loserName = loserTeam ? `${loserTeam.player1} & ${loserTeam.player2}` : 'Unknown';
                 }
@@ -1128,12 +1085,11 @@
         }
 
         function getWinnerName(game) {
-            const { canonicalTeams } = getSanitizedData();
             if (!game) return 'Unknown';
             if (game.gameMode === 'single') {
                 return game.winner;
             } else {
-                const team = canonicalTeams.find(t => t.id === game.winner);
+                const team = teams.find(t => t.id === game.winner);
                 return team ? `${team.player1} & ${team.player2}` : 'Unknown';
             }
         }
@@ -1169,11 +1125,9 @@
         }
 
         function loadHistory() {
-            const { canonicalTeams, sanitizedGames } = getSanitizedData();
+            document.getElementById('totalGamesCount').textContent = games.length;
             
-            document.getElementById('totalGamesCount').textContent = sanitizedGames.length;
-            
-            const sortedGames = [...sanitizedGames].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const sortedGames = [...games].sort((a, b) => new Date(b.date) - new Date(a.date));
             
             const historyHtml = sortedGames.map(game => {
                 let winnerName, loserName;
@@ -1182,8 +1136,8 @@
                     winnerName = game.winner;
                     loserName = game.loser;
                 } else {
-                    const winnerTeam = canonicalTeams.find(t => t.id === game.winner);
-                    const loserTeam = canonicalTeams.find(t => t.id === game.loser);
+                    const winnerTeam = teams.find(t => t.id === game.winner);
+                    const loserTeam = teams.find(t => t.id === game.loser);
                     winnerName = winnerTeam ? `${winnerTeam.player1} & ${winnerTeam.player2}` : 'Unknown';
                     loserName = loserTeam ? `${loserTeam.player1} & ${loserTeam.player2}` : 'Unknown';
                 }
@@ -1239,14 +1193,13 @@
         }
 
         function showEditGameModal(gameId) {
-            const { canonicalTeams } = getSanitizedData();
             const game = games.find(g => g.id == gameId);
             if (!game) return;
             editingGameId = gameId;
 
             let formHtml = '';
             if (game.gameMode === 'team') {
-                const options = canonicalTeams.map(t => `<option value="${t.id}">${t.player1} & ${t.player2}</option>`).join('');
+                const options = teams.map(t => `<option value="${t.id}">${t.player1} & ${t.player2}</option>`).join('');
                 formHtml += `
                     <label class="block text-sm font-medium">Winner</label>
                     <select id="editWinner" class="w-full p-2 border rounded-lg mb-2">${options}</select>
@@ -1310,12 +1263,11 @@
         }
 
         function loadDailyTeamChart() {
-            const { canonicalTeams, sanitizedGames } = getSanitizedData();
             const today = new Date().toDateString();
-            const todayGames = sanitizedGames.filter(g => new Date(g.date).toDateString() === today);
+            const todayGames = games.filter(g => new Date(g.date).toDateString() === today);
             
             const teamData = {};
-            canonicalTeams.forEach(team => {
+            teams.forEach(team => {
                 const teamName = `${team.player1} & ${team.player2}`;
                 teamData[teamName] = { wins: 0, losses: 0 };
             });
@@ -1333,8 +1285,8 @@
                     singlePlayerData[game.winner].wins += game.gameValue || 1;
                     singlePlayerData[game.loser].losses += game.gameValue || 1;
                 } else {
-                    const winnerTeam = canonicalTeams.find(t => t.id === game.winner);
-                    const loserTeam = canonicalTeams.find(t => t.id === game.loser);
+                    const winnerTeam = teams.find(t => t.id === game.winner);
+                    const loserTeam = teams.find(t => t.id === game.loser);
                     if (winnerTeam) {
                         const winnerName = `${winnerTeam.player1} & ${winnerTeam.player2}`;
                         if(teamData[winnerName]) teamData[winnerName].wins += game.gameValue || 1;
@@ -1995,12 +1947,11 @@
 
         // Teams Section
         function loadTeams() {
-            const { canonicalTeams, sanitizedGames } = getSanitizedData();
-            const teamsHtml = canonicalTeams.map(team => {
-                const wins = sanitizedGames.filter(g => g.winner === team.id).reduce((sum, g) => sum + (g.gameValue || 1), 0);
-                const losses = sanitizedGames.filter(g => g.loser === team.id).reduce((sum, g) => sum + (g.gameValue || 1), 0);
-                const petarolls = sanitizedGames.filter(g => g.winner === team.id && g.isPetaroll).length;
-                const gotPetarolled = sanitizedGames.filter(g => g.loser === team.id && g.isPetaroll).length;
+            const teamsHtml = teams.map(team => {
+                const wins = games.filter(g => g.winner === team.id).reduce((sum, g) => sum + (g.gameValue || 1), 0);
+                const losses = games.filter(g => g.loser === team.id).reduce((sum, g) => sum + (g.gameValue || 1), 0);
+                const petarolls = games.filter(g => g.winner === team.id && g.isPetaroll).length;
+                const gotPetarolled = games.filter(g => g.loser === team.id && g.isPetaroll).length;
                 const totalGames = wins + losses;
                 const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(1) : 0;
                 
@@ -2146,13 +2097,10 @@
         }
 
         function loadTeamRankings(period) {
-            const { canonicalTeams, sanitizedGames } = getSanitizedData();
-            document.getElementById('teamPeriodInfo').textContent = getPeriodDateRange(period);
-            
-            const filteredGames = filterGamesByPeriod(sanitizedGames, period);
+            const filteredGames = filterGamesByPeriod(games, period);
             const teamStats = {};
             
-            canonicalTeams.forEach(team => {
+            teams.forEach(team => {
                 teamStats[team.id] = { name: `${team.player1} & ${team.player2}`, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
             });
             
@@ -2202,10 +2150,7 @@
         }
 
         function loadPlayerStats(period) {
-            const { canonicalTeams, sanitizedGames } = getSanitizedData();
-            document.getElementById('playerPeriodInfo').textContent = getPeriodDateRange(period);
-            
-            const filteredGames = filterGamesByPeriod(sanitizedGames, period);
+            const filteredGames = filterGamesByPeriod(games, period);
             const playerStats = {};
             
             players.forEach(player => {
@@ -2223,8 +2168,8 @@
                         if (game.isPetaroll) playerStats[game.loser].gotPetarolled++;
                     }
                 } else {
-                    const winnerTeam = canonicalTeams.find(t => t.id === game.winner);
-                    const loserTeam = canonicalTeams.find(t => t.id === game.loser);
+                    const winnerTeam = teams.find(t => t.id === game.winner);
+                    const loserTeam = teams.find(t => t.id === game.loser);
                     
                     if (winnerTeam) {
                         [winnerTeam.player1, winnerTeam.player2].forEach(p => {
