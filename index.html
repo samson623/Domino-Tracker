@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Domino Game Tracker</title>
+    <title>Enhanced Domino Game Tracker</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -398,23 +398,35 @@
                             <div class="space-y-4">
                                 <h3 class="text-lg font-semibold text-center">Team 1</h3>
                                 <div>
+                                    <label class="block text-sm font-medium mb-2">Select Team or Player 1</label>
+                                    <select id="gameTeam1Selection" class="w-full p-3 border rounded-lg" onchange="handleTeamSelection('team1', this.value)">
+                                        <option value="">Select team or player</option>
+                                    </select>
+                                </div>
+                                <div>
                                     <label class="block text-sm font-medium mb-2">Player 1</label>
-                                    <input type="text" id="gameTeam1Player1Input" list="playerDatalist" class="w-full p-3 border rounded-lg" placeholder="Enter or select player 1">
+                                    <input type="text" id="gameTeam1Player1Input" class="w-full p-3 border rounded-lg" placeholder="Player 1 name">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Player 2</label>
-                                    <input type="text" id="gameTeam1Player2Input" list="playerDatalist" class="w-full p-3 border rounded-lg" placeholder="Enter or select player 2">
+                                    <input type="text" id="gameTeam1Player2Input" class="w-full p-3 border rounded-lg" placeholder="Player 2 name">
                                 </div>
                             </div>
                             <div class="space-y-4">
                                 <h3 class="text-lg font-semibold text-center">Team 2</h3>
                                 <div>
+                                    <label class="block text-sm font-medium mb-2">Select Team or Player 1</label>
+                                    <select id="gameTeam2Selection" class="w-full p-3 border rounded-lg" onchange="handleTeamSelection('team2', this.value)">
+                                        <option value="">Select team or player</option>
+                                    </select>
+                                </div>
+                                <div>
                                     <label class="block text-sm font-medium mb-2">Player 1</label>
-                                    <input type="text" id="gameTeam2Player1Input" list="playerDatalist" class="w-full p-3 border rounded-lg" placeholder="Enter or select player 1">
+                                    <input type="text" id="gameTeam2Player1Input" class="w-full p-3 border rounded-lg" placeholder="Player 1 name">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Player 2</label>
-                                    <input type="text" id="gameTeam2Player2Input" list="playerDatalist" class="w-full p-3 border rounded-lg" placeholder="Enter or select player 2">
+                                    <input type="text" id="gameTeam2Player2Input" class="w-full p-3 border rounded-lg" placeholder="Player 2 name">
                                 </div>
                             </div>
                         </div>
@@ -425,15 +437,18 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-medium mb-2">Player 1 Name</label>
-                                <input type="text" id="player1Input" list="playerDatalist" class="w-full p-3 border rounded-lg" placeholder="Enter or select player 1">
+                                <select id="player1Select" class="w-full p-3 border rounded-lg">
+                                    <option value="">Select player</option>
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium mb-2">Player 2 Name</label>
-                                <input type="text" id="player2Input" list="playerDatalist" class="w-full p-3 border rounded-lg" placeholder="Enter or select player 2">
+                                <select id="player2Select" class="w-full p-3 border rounded-lg">
+                                    <option value="">Select player</option>
+                                </select>
                             </div>
                         </div>
                     </div>
-                    <datalist id="playerDatalist"></datalist>
 
                     <!-- Best Of Selection -->
                     <div class="mt-4">
@@ -789,6 +804,24 @@
         </div>
     </div>
 
+    <!-- Edit Game Modal -->
+    <div id="editGameModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="domino-card p-8 m-4 max-w-md w-full">
+            <h2 class="text-2xl font-bold mb-4">Edit Game</h2>
+            <div id="editGameForm">
+                <!-- Dynamic content -->
+            </div>
+            <div class="flex space-x-4 mt-6">
+                <button onclick="saveGameEdits()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded-lg font-medium">
+                    <i class="fas fa-save mr-2"></i>Save Changes
+                </button>
+                <button onclick="closeEditGameModal()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-medium">
+                    <i class="fas fa-times mr-2"></i>Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="achievementToast" class="hidden"></div>
 
     <script>
@@ -811,7 +844,7 @@
         let achievements = JSON.parse(localStorage.getItem('dominoAchievements')) || {};
         const achievementDefinitions = {
             tenWins: '🏅 Ten Wins',
-            firstPetaroll: '🔥 First PETAROLL'
+            anyPetaroll: '🔥 Any PETAROLL'
         };
         let pendingWinType = null;
         let recognition;
@@ -857,7 +890,7 @@
                 teams: teams,
                 games: games,
                 exportDate: new Date().toISOString(),
-                version: '1.1' // Updated version
+                version: '1.1'
             };
             
             const dataStr = JSON.stringify(data, null, 2);
@@ -884,32 +917,24 @@
 
         function resetAllData() {
             if (!confirm("Are you absolutely sure you want to delete all data? This cannot be undone.")) return;
-            // Clear all data from localStorage
             localStorage.removeItem('dominoPlayers');
             localStorage.removeItem('dominoTeams');
             localStorage.removeItem('dominoGames');
             localStorage.removeItem('dominoAchievements');
             
-            // Reset global variables
             players = [];
             teams = [];
             games = [];
             achievements = {};
             currentGame = null;
             
-            // Destroy all chart instances
             Object.values(chartInstances).forEach(chart => {
                 if (chart) chart.destroy();
             });
             chartInstances = {};
             
-            // Close modal
             closeResetModal();
-            
-            // Reload current section
             showSection(currentSection);
-            
-            // Show success message
             alert('All data has been reset successfully!');
         }
 
@@ -919,7 +944,6 @@
             document.getElementById(section + 'Section').classList.remove('hidden');
             currentSection = section;
             
-            // Update navigation states
             document.querySelectorAll('.nav-btn, .mobile-nav-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -935,28 +959,22 @@
             else if (section === 'history') loadHistory();
         }
 
-        // Function to refresh all data displays
         function refreshAllData() {
-            // Reload home section data
             loadDailyTeamStats();
             loadRecentGames();
             loadDailyTeamChart();
             
-            // If we're on the history page, reload it
             if (currentSection === 'history') {
                 loadHistory();
             }
             
-            // If we're on the teams page, reload it
             if (currentSection === 'teams') {
                 loadTeams();
             }
-             // If we're on the players page, reload it
-            if (currentSection === 'players') {
+             if (currentSection === 'players') {
                 loadPlayers();
             }
             
-            // If we're on the leaderboard page, reload it
             if (currentSection === 'leaderboard') {
                 loadLeaderboard();
             }
@@ -1016,8 +1034,8 @@
                     <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                         <span class="font-medium">${stat.name}</span>
                         <div class="flex items-center space-x-4">
-                            <span class="text-green-600 font-bold">${stat.wins}W</span>
-                            <span class="text-red-600 font-bold">${stat.losses}L</span>
+                            <span class="text-green-600 font-bold">+${stat.wins}</span>
+                            <span class="text-red-600 font-bold">-${stat.losses}</span>
                             ${stat.petarolls > 0 ? `<span class="petaroll-badge">${stat.petarolls} PETAROLL</span>` : ''}
                             ${stat.gotPetarolled > 0 ? `<span class="petarolled-badge">${stat.gotPetarolled} PETAROLLED</span>` : ''}
                         </div>
@@ -1098,19 +1116,21 @@
             const totalWins = games.reduce((sum, g) => sum + (g.gameValue || 1), 0);
             let updated = false;
             const lastGame = games[games.length - 1];
+            
             if (totalWins >= 10 && !achievements.tenWins) {
                 const winnerName = getWinnerName(lastGame);
                 achievements.tenWins = { winner: winnerName };
                 showAchievement('Achievement Unlocked: ' + achievementDefinitions.tenWins + ' - ' + winnerName);
                 updated = true;
             }
-            const firstPetarollGame = games.find(g => g.isPetaroll);
-            if (firstPetarollGame && !achievements.firstPetaroll) {
-                const winnerName = getWinnerName(firstPetarollGame);
-                achievements.firstPetaroll = { winner: winnerName };
-                showAchievement('Achievement Unlocked: ' + achievementDefinitions.firstPetaroll + ' - ' + winnerName);
+            
+            if (lastGame && lastGame.isPetaroll && !achievements.anyPetaroll) {
+                const winnerName = getWinnerName(lastGame);
+                achievements.anyPetaroll = { winner: winnerName };
+                showAchievement('Achievement Unlocked: ' + achievementDefinitions.anyPetaroll + ' - ' + winnerName);
                 updated = true;
             }
+            
             if (updated) {
                 localStorage.setItem('dominoAchievements', JSON.stringify(achievements));
                 loadAchievements();
@@ -1185,9 +1205,7 @@
             if (confirm('Are you sure you want to delete this game? This will affect all statistics.')) {
                 games = games.filter(g => g.id != gameId);
                 localStorage.setItem('dominoGames', JSON.stringify(games));
-
                 refreshAllData();
-
                 alert('Game deleted successfully!');
             }
         }
@@ -1258,7 +1276,6 @@
 
             localStorage.setItem('dominoGames', JSON.stringify(games));
             closeEditGameModal();
-
             refreshAllData();
         }
 
@@ -1359,17 +1376,63 @@
             document.getElementById('teamModeSetup').classList.toggle('hidden', mode !== 'team');
             document.getElementById('singleModeSetup').classList.toggle('hidden', mode !== 'single');
             
-            populatePlayerDatalist(); 
+            populateSelectionDropdowns(); 
             
             document.getElementById('gameSetup').classList.remove('hidden');
         }
 
-        function populatePlayerDatalist() {
-            const datalist = document.getElementById('playerDatalist');
-            datalist.innerHTML = '';
-            players.forEach(player => {
-                datalist.innerHTML += `<option value="${player.name}">`;
-            });
+        function populateSelectionDropdowns() {
+            if (currentGameMode === 'team') {
+                // Team mode dropdowns should show both players and teams
+                const teamOptions = ['<option value="">Select team or player</option>'];
+                
+                // Add individual players
+                players.forEach(player => {
+                    teamOptions.push(`<option value="player:${player.name}">${player.name}</option>`);
+                });
+                
+                // Add teams
+                teams.forEach(team => {
+                    teamOptions.push(`<option value="team:${team.id}">${team.player1} & ${team.player2}</option>`);
+                });
+                
+                const optionsHtml = teamOptions.join('');
+                document.getElementById('gameTeam1Selection').innerHTML = optionsHtml;
+                document.getElementById('gameTeam2Selection').innerHTML = optionsHtml;
+                
+            } else if (currentGameMode === 'single') {
+                // Single mode dropdowns should show only players
+                const playerOptions = ['<option value="">Select player</option>'];
+                players.forEach(player => {
+                    playerOptions.push(`<option value="${player.name}">${player.name}</option>`);
+                });
+                
+                const optionsHtml = playerOptions.join('');
+                document.getElementById('player1Select').innerHTML = optionsHtml;
+                document.getElementById('player2Select').innerHTML = optionsHtml;
+            }
+        }
+
+        function handleTeamSelection(teamPosition, value) {
+            if (!value) return;
+            
+            const player1Input = document.getElementById(`game${teamPosition.charAt(0).toUpperCase() + teamPosition.slice(1)}Player1Input`);
+            const player2Input = document.getElementById(`game${teamPosition.charAt(0).toUpperCase() + teamPosition.slice(1)}Player2Input`);
+            
+            if (value.startsWith('team:')) {
+                // Selected a team - auto-populate players
+                const teamId = value.split(':')[1];
+                const selectedTeam = teams.find(t => t.id === teamId);
+                if (selectedTeam) {
+                    player1Input.value = selectedTeam.player1;
+                    player2Input.value = selectedTeam.player2;
+                }
+            } else if (value.startsWith('player:')) {
+                // Selected an individual player - put in player 1 field
+                const playerName = value.split(':')[1];
+                player1Input.value = playerName;
+                player2Input.value = '';
+            }
         }
 
         function startNewGame() {
@@ -1420,15 +1483,15 @@
                 document.getElementById('team2Players').textContent = `${team2.player1} & ${team2.player2}`;
 
             } else { // Single mode
-                const player1Name = document.getElementById('player1Input').value.trim();
-                const player2Name = document.getElementById('player2Input').value.trim();
+                const player1Name = document.getElementById('player1Select').value.trim();
+                const player2Name = document.getElementById('player2Select').value.trim();
                 
                 if (!player1Name || !player2Name) {
-                    alert('Please enter both player names');
+                    alert('Please select both players');
                     return;
                 }
                  if (player1Name.toLowerCase() === player2Name.toLowerCase()) {
-                    alert('Players must have different names.');
+                    alert('Players must be different.');
                     return;
                 }
 
@@ -1784,6 +1847,7 @@
             }
             document.getElementById('winMessage').innerHTML += seriesInfo;
 
+            checkAchievements();
             refreshAllData();
             document.getElementById('winModal').classList.remove('hidden');
             disableScoreButtons();
@@ -1833,12 +1897,15 @@
             document.getElementById('confirmScoreContainer').classList.add('hidden');
             document.getElementById('gameControls').classList.remove('hidden');
             
-            document.getElementById('player1Input').value = '';
-            document.getElementById('player2Input').value = '';
+            // Clear all input fields
             document.getElementById('gameTeam1Player1Input').value = '';
             document.getElementById('gameTeam1Player2Input').value = '';
             document.getElementById('gameTeam2Player1Input').value = '';
             document.getElementById('gameTeam2Player2Input').value = '';
+            document.getElementById('gameTeam1Selection').value = '';
+            document.getElementById('gameTeam2Selection').value = '';
+            document.getElementById('player1Select').value = '';
+            document.getElementById('player2Select').value = '';
             
             loadLiveSection();
         }
@@ -1855,6 +1922,42 @@
             });
         }
 
+        // Timer functions
+        function startTurnTimer() {
+            const timeInput = document.getElementById('turnTimeInput');
+            const timeLimit = Math.min(parseInt(timeInput.value) || 60, 60);
+            remainingTime = timeLimit;
+            
+            if (turnTimer) clearInterval(turnTimer);
+            
+            turnTimer = setInterval(() => {
+                remainingTime--;
+                updateTimerDisplay();
+                
+                if (remainingTime <= 0) {
+                    stopTurnTimer();
+                    alert('Time\'s up!');
+                }
+            }, 1000);
+            
+            updateTimerDisplay();
+        }
+        
+        function stopTurnTimer() {
+            if (turnTimer) {
+                clearInterval(turnTimer);
+                turnTimer = null;
+            }
+            document.getElementById('turnTimerDisplay').textContent = '--';
+        }
+        
+        function updateTimerDisplay() {
+            const minutes = Math.floor(remainingTime / 60);
+            const seconds = remainingTime % 60;
+            document.getElementById('turnTimerDisplay').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
         // Players Section
         function loadPlayers() {
             const playersHtml = players.map(player => {
@@ -1863,6 +1966,7 @@
                     const team = teams.find(t => t.id === g.winner);
                     return team && (team.player1 === player.name || team.player2 === player.name);
                 }).reduce((sum, g) => sum + (g.gameValue || 1), 0);
+                
                 const losses = games.filter(g => {
                     if (g.gameMode === 'single') return g.loser === player.name;
                     const team = teams.find(t => t.id === g.loser);
@@ -1911,6 +2015,11 @@
 
         function createPlayer() {
             const playerName = document.getElementById('newPlayerName').value.trim();
+            if (!playerName) {
+                alert('Please enter a player name');
+                return;
+            }
+            
             addPlayerIfNotExists(playerName);
             hideCreatePlayerForm();
             loadPlayers();
@@ -2073,27 +2182,6 @@
             loadTeamRankings(period);
             loadPlayerStats(period);
             loadPerformanceChart(period);
-        }
-
-        function getPeriodDateRange(period) {
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            
-            switch (period) {
-                case 'daily': return `Today - ${today.toLocaleDateString()}`;
-                case 'weekly':
-                    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-                    return `${weekAgo.toLocaleDateString()} - ${today.toLocaleDateString()}`;
-                case 'monthly':
-                    const monthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
-                    return `${monthAgo.toLocaleDateString()} - ${today.toLocaleDateString()}`;
-                default:
-                    if (games.length > 0) {
-                        const oldestGame = games.reduce((oldest, game) => new Date(game.date) < new Date(oldest.date) ? game : oldest);
-                        return `Since ${new Date(oldestGame.date).toLocaleDateString()}`;
-                    }
-                    return 'All Time';
-            }
         }
 
         function loadTeamRankings(period) {
@@ -2291,7 +2379,7 @@
         function setupSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
-                document.getElementById('micBtn').style.display = 'none'; // Hide if not supported
+                document.getElementById('micBtn').style.display = 'none';
                 return;
             }
 
