@@ -301,13 +301,13 @@
         <!-- Home Section -->
         <div id="homeSection" class="section">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <!-- Today's Team Stats -->
+                <!-- Today's Performance -->
                 <div class="domino-card p-6">
                     <h3 class="text-lg font-bold mb-4 flex items-center">
                         <i class="fas fa-calendar-day mr-2 text-blue-500"></i>
                         Today's Performance
                     </h3>
-                    <div id="dailyTeamStats" class="space-y-3">
+                    <div id="todaysPerformance" class="space-y-3">
                         <!-- Dynamic content -->
                     </div>
                 </div>
@@ -356,14 +356,14 @@
                 </div>
             </div>
 
-            <!-- Daily Team Leaderboard Chart -->
+            <!-- Daily Player Summary -->
             <div class="domino-card p-6">
                 <h3 class="text-lg font-bold mb-4 flex items-center">
-                    <i class="fas fa-chart-bar mr-2 text-indigo-500"></i>
-                    Daily Performance Chart
+                    <i class="fas fa-user-check mr-2 text-indigo-500"></i>
+                    Daily Player Summary
                 </h3>
-                <div style="height: 400px;">
-                    <canvas id="dailyTeamChart"></canvas>
+                <div id="dailyPlayerSummaryList" class="space-y-4 max-h-96 overflow-y-auto">
+                    <!-- Dynamic content -->
                 </div>
             </div>
         </div>
@@ -860,6 +860,7 @@
                 document.documentElement.classList.remove('dark');
                 document.getElementById('themeIcon').className = 'fas fa-moon';
             }
+            refreshAllData();
         }
 
         document.getElementById('themeToggle').addEventListener('click', () => {
@@ -873,6 +874,7 @@
                 document.getElementById('themeIcon').className = 'fas fa-sun';
                 localStorage.setItem('theme', 'dark');
             }
+            refreshAllData();
         });
 
         // Export functionality
@@ -960,21 +962,19 @@
         }
 
         function refreshAllData() {
-            loadDailyTeamStats();
+            loadTodaysPerformance();
             loadRecentGames();
-            loadDailyTeamChart();
+            loadDailyPlayerSummary();
             
             if (currentSection === 'history') {
                 loadHistory();
             }
-            
             if (currentSection === 'teams') {
                 loadTeams();
             }
              if (currentSection === 'players') {
                 loadPlayers();
             }
-            
             if (currentSection === 'leaderboard') {
                 loadLeaderboard();
             }
@@ -982,39 +982,30 @@
         
         // Home section
         function loadHome() {
-            loadDailyTeamStats();
+            loadTodaysPerformance();
             loadRecentGames();
-            loadDailyTeamChart();
+            loadDailyPlayerSummary();
             loadAchievements();
         }
 
-        function loadDailyTeamStats() {
+        function loadTodaysPerformance() {
             const today = new Date().toDateString();
             const todayGames = games.filter(g => new Date(g.date).toDateString() === today);
-            
-            const teamStats = {};
-            teams.forEach(team => {
-                const teamName = `${team.player1} & ${team.player2}`;
-                teamStats[team.id] = { name: teamName, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
-            });
-            
-            const singlePlayerStats = {};
-            
-            todayGames.forEach(game => {
-                if (game.gameMode === 'single') {
-                    if (!singlePlayerStats[game.winner]) {
-                        singlePlayerStats[game.winner] = { name: game.winner, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
-                    }
-                    if (!singlePlayerStats[game.loser]) {
-                        singlePlayerStats[game.loser] = { name: game.loser, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
-                    }
-                    
-                    singlePlayerStats[game.winner].wins += game.gameValue || 1;
-                    if (game.isPetaroll) singlePlayerStats[game.winner].petarolls++;
-                    
-                    singlePlayerStats[game.loser].losses += game.gameValue || 1;
-                    if (game.isPetaroll) singlePlayerStats[game.loser].gotPetarolled++;
-                } else {
+
+            const teamGames = todayGames.filter(g => g.gameMode === 'team');
+            const singleGames = todayGames.filter(g => g.gameMode === 'single');
+
+            let html = '';
+
+            // Team Game Stats
+            if (teamGames.length > 0) {
+                const teamStats = {};
+                teams.forEach(team => {
+                    const teamName = `${team.player1} & ${team.player2}`;
+                    teamStats[team.id] = { name: teamName, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
+                });
+
+                teamGames.forEach(game => {
                     if (teamStats[game.winner]) {
                         teamStats[game.winner].wins += game.gameValue || 1;
                         if (game.isPetaroll) teamStats[game.winner].petarolls++;
@@ -1023,26 +1014,59 @@
                         teamStats[game.loser].losses += game.gameValue || 1;
                         if (game.isPetaroll) teamStats[game.loser].gotPetarolled++;
                     }
-                }
-            });
-            
-            const allStats = [...Object.values(teamStats), ...Object.values(singlePlayerStats)]
-                .filter(stat => stat.wins > 0 || stat.losses > 0);
-            
-            const statsHtml = allStats
-                .map(stat => `
-                    <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <span class="font-medium">${stat.name}</span>
-                        <div class="flex items-center space-x-4">
-                            <span class="text-green-600 font-bold">+${stat.wins}</span>
-                            <span class="text-red-600 font-bold">-${stat.losses}</span>
-                            ${stat.petarolls > 0 ? `<span class="petaroll-badge">${stat.petarolls} PETAROLL</span>` : ''}
-                            ${stat.gotPetarolled > 0 ? `<span class="petarolled-badge">${stat.gotPetarolled} PETAROLLED</span>` : ''}
+                });
+
+                const filteredTeamStats = Object.values(teamStats).filter(stat => stat.wins > 0 || stat.losses > 0);
+
+                if (filteredTeamStats.length > 0) {
+                    html += '<h4 class="font-bold mb-2 text-gray-700 dark:text-gray-300">Team Games</h4>';
+                    html += filteredTeamStats.map(stat => `
+                        <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mb-2">
+                            <span class="font-medium">${stat.name}</span>
+                            <div class="flex items-center space-x-4">
+                                <span class="text-green-600 font-bold">+${stat.wins}</span>
+                                <span class="text-red-600 font-bold">-${stat.losses}</span>
+                                ${stat.petarolls > 0 ? `<span class="petaroll-badge">${stat.petarolls} PETAROLL</span>` : ''}
+                                ${stat.gotPetarolled > 0 ? `<span class="petarolled-badge">${stat.gotPetarolled} PETAROLLED</span>` : ''}
+                            </div>
                         </div>
-                    </div>
-                `).join('');
-            
-            document.getElementById('dailyTeamStats').innerHTML = statsHtml || '<p class="text-gray-500 dark:text-gray-400">No games played today</p>';
+                    `).join('');
+                }
+            }
+
+            // Single Game Stats
+            if (singleGames.length > 0) {
+                const singlePlayerStats = {};
+                singleGames.forEach(game => {
+                    if (!singlePlayerStats[game.winner]) singlePlayerStats[game.winner] = { name: game.winner, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
+                    if (!singlePlayerStats[game.loser]) singlePlayerStats[game.loser] = { name: game.loser, wins: 0, losses: 0, petarolls: 0, gotPetarolled: 0 };
+
+                    singlePlayerStats[game.winner].wins += game.gameValue || 1;
+                    if (game.isPetaroll) singlePlayerStats[game.winner].petarolls++;
+                    
+                    singlePlayerStats[game.loser].losses += game.gameValue || 1;
+                    if (game.isPetaroll) singlePlayerStats[game.loser].gotPetarolled++;
+                });
+
+                const filteredSingleStats = Object.values(singlePlayerStats).filter(stat => stat.wins > 0 || stat.losses > 0);
+
+                if (filteredSingleStats.length > 0) {
+                    html += '<h4 class="font-bold mt-4 mb-2 text-gray-700 dark:text-gray-300">One-on-One Games</h4>';
+                    html += filteredSingleStats.map(stat => `
+                        <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mb-2">
+                            <span class="font-medium">${stat.name}</span>
+                            <div class="flex items-center space-x-4">
+                                <span class="text-green-600 font-bold">+${stat.wins}</span>
+                                <span class="text-red-600 font-bold">-${stat.losses}</span>
+                                ${stat.petarolls > 0 ? `<span class="petaroll-badge">${stat.petarolls} PETAROLL</span>` : ''}
+                                ${stat.gotPetarolled > 0 ? `<span class="petarolled-badge">${stat.gotPetarolled} PETAROLLED</span>` : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            document.getElementById('todaysPerformance').innerHTML = html || '<p class="text-gray-500 dark:text-gray-400">No games played today</p>';
         }
 
         function loadRecentGames() {
@@ -1279,83 +1303,91 @@
             refreshAllData();
         }
 
-        function loadDailyTeamChart() {
+        function loadDailyPlayerSummary() {
             const today = new Date().toDateString();
             const todayGames = games.filter(g => new Date(g.date).toDateString() === today);
-            
-            const teamData = {};
-            teams.forEach(team => {
-                const teamName = `${team.player1} & ${team.player2}`;
-                teamData[teamName] = { wins: 0, losses: 0 };
-            });
-            
-            const singlePlayerData = {};
-            
+            const summaryContainer = document.getElementById('dailyPlayerSummaryList');
+
+            if (todayGames.length === 0) {
+                summaryContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400">No games played today to summarize.</p>';
+                return;
+            }
+
+            const playerSummaries = {};
+
+            // Helper to initialize a player summary
+            const initPlayer = (name) => {
+                if (!playerSummaries[name]) {
+                    playerSummaries[name] = { wins: 0, losses: 0, games: [] };
+                }
+            };
+
             todayGames.forEach(game => {
                 if (game.gameMode === 'single') {
-                    if (!singlePlayerData[game.winner]) {
-                        singlePlayerData[game.winner] = { wins: 0, losses: 0 };
-                    }
-                    if (!singlePlayerData[game.loser]) {
-                        singlePlayerData[game.loser] = { wins: 0, losses: 0 };
-                    }
-                    singlePlayerData[game.winner].wins += game.gameValue || 1;
-                    singlePlayerData[game.loser].losses += game.gameValue || 1;
-                } else {
+                    const winnerName = game.winner;
+                    const loserName = game.loser;
+
+                    initPlayer(winnerName);
+                    initPlayer(loserName);
+
+                    // Add win for winner
+                    playerSummaries[winnerName].wins += game.gameValue || 1;
+                    playerSummaries[winnerName].games.push(
+                        `<li class="text-sm"><span class="font-bold text-green-600">Win</span> vs ${loserName} (${game.winnerScore}-${game.loserScore}) ${game.isPetaroll ? '<span class="petaroll-badge !ml-1">PETAROLL</span>' : ''}</li>`
+                    );
+
+                    // Add loss for loser
+                    playerSummaries[loserName].losses += game.gameValue || 1;
+                    playerSummaries[loserName].games.push(
+                        `<li class="text-sm"><span class="font-bold text-red-600">Loss</span> vs ${winnerName} (${game.loserScore}-${game.winnerScore}) ${game.isPetaroll ? '<span class="petarolled-badge !ml-1">PETAROLLED</span>' : ''}</li>`
+                    );
+
+                } else { // Team game
                     const winnerTeam = teams.find(t => t.id === game.winner);
                     const loserTeam = teams.find(t => t.id === game.loser);
-                    if (winnerTeam) {
-                        const winnerName = `${winnerTeam.player1} & ${winnerTeam.player2}`;
-                        if(teamData[winnerName]) teamData[winnerName].wins += game.gameValue || 1;
-                    }
-                    if (loserTeam) {
-                        const loserName = `${loserTeam.player1} & ${loserTeam.player2}`;
-                        if(teamData[loserName]) teamData[loserName].losses += game.gameValue || 1;
-                    }
+
+                    if (!winnerTeam || !loserTeam) return; // Skip if team not found
+
+                    const winnerNames = [winnerTeam.player1, winnerTeam.player2];
+                    const loserNames = [loserTeam.player1, loserTeam.player2];
+
+                    winnerNames.forEach(initPlayer);
+                    loserNames.forEach(initPlayer);
+
+                    // Add wins for winners
+                    winnerNames.forEach(name => {
+                        playerSummaries[name].wins += game.gameValue || 1;
+                        const partner = winnerNames.find(p => p !== name);
+                        playerSummaries[name].games.push(
+                            `<li class="text-sm"><span class="font-bold text-green-600">Win</span> with ${partner} vs ${loserNames.join(' & ')} (${game.winnerScore}-${game.loserScore}) ${game.isPetaroll ? '<span class="petaroll-badge !ml-1">PETAROLL</span>' : ''}</li>`
+                        );
+                    });
+
+                    // Add losses for losers
+                    loserNames.forEach(name => {
+                        playerSummaries[name].losses += game.gameValue || 1;
+                        const partner = loserNames.find(p => p !== name);
+                        playerSummaries[name].games.push(
+                            `<li class="text-sm"><span class="font-bold text-red-600">Loss</span> with ${partner} vs ${winnerNames.join(' & ')} (${game.loserScore}-${game.winnerScore}) ${game.isPetaroll ? '<span class="petarolled-badge !ml-1">PETAROLLED</span>' : ''}</li>`
+                        );
+                    });
                 }
             });
-            
-            const allData = {...teamData, ...singlePlayerData};
-            const ctx = document.getElementById('dailyTeamChart').getContext('2d');
-            
-            if (chartInstances.dailyTeamChart) {
-                chartInstances.dailyTeamChart.destroy();
-            }
-            
-            chartInstances.dailyTeamChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(allData),
-                    datasets: [
-                        {
-                            label: 'Wins',
-                            data: Object.values(allData).map(d => d.wins),
-                            backgroundColor: 'rgba(34, 197, 94, 0.8)',
-                            borderColor: 'rgba(34, 197, 94, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Losses',
-                            data: Object.values(allData).map(d => d.losses),
-                            backgroundColor: 'rgba(239, 68, 68, 0.8)',
-                            borderColor: 'rgba(239, 68, 68, 1)',
-                            borderWidth: 1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    }
-                }
+
+            let summaryHtml = '';
+            Object.keys(playerSummaries).sort().forEach(playerName => {
+                const summary = playerSummaries[playerName];
+                summaryHtml += `
+                    <div>
+                        <h5 class="font-bold">${playerName} <span class="font-normal text-gray-600 dark:text-gray-400">(${summary.wins}W - ${summary.losses}L)</span></h5>
+                        <ul class="list-disc list-inside pl-2 mt-1 space-y-1">
+                            ${summary.games.join('')}
+                        </ul>
+                    </div>
+                `;
             });
+            
+            summaryContainer.innerHTML = summaryHtml;
         }
 
         // Live game section
