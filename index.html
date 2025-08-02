@@ -740,14 +740,45 @@
                 </div>
             </div>
 
-            <!-- Performance Chart -->
-            <div class="domino-card p-6 mt-6">
-                <h3 class="text-xl font-bold mb-4 flex items-center">
-                    <i class="fas fa-chart-line mr-2 text-purple-500"></i>
-                    Performance Trends
-                </h3>
-                <div style="height: 400px;">
-                    <canvas id="performanceChart"></canvas>
+            <!-- New Stats Sections -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                <!-- Opponent Comparison -->
+                <div class="domino-card p-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-balance-scale mr-2 text-red-500"></i>
+                        Opponent Comparison
+                    </h3>
+                    <div class="space-y-2">
+                        <select id="comparison-select1" class="w-full p-2 border rounded-lg"></select>
+                        <select id="comparison-select2" class="w-full p-2 border rounded-lg"></select>
+                        <div id="comparison-period-selector" class="flex justify-center space-x-4 py-2">
+                            <label><input type="radio" name="comparison-period" value="daily" checked> Today</label>
+                            <label><input type="radio" name="comparison-period" value="alltime"> All Time</label>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="runOpponentComparison()" class="w-2/3 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg">Compare</button>
+                            <button onclick="resetOpponentComparison()" class="w-1/3 bg-gray-500 hover:bg-gray-600 text-white py-2 rounded-lg">Reset</button>
+                        </div>
+                    </div>
+                    <div id="comparison-results" class="mt-4"></div>
+                </div>
+
+                <!-- Streaks & Slumps -->
+                <div class="domino-card p-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-chart-line mr-2 text-purple-500"></i>
+                        Streaks & Slumps
+                    </h3>
+                    <div id="streaks-slumps-list"></div>
+                </div>
+
+                <!-- PETAROLL Leaders -->
+                <div class="domino-card p-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-fire-alt mr-2 text-orange-500"></i>
+                        PETAROLL Leaders
+                    </h3>
+                    <div id="petaroll-leaders-list"></div>
                 </div>
             </div>
         </div>
@@ -774,13 +805,16 @@
     <div id="resetModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="domino-card p-8 m-4 max-w-md w-full text-center">
             <div class="text-6xl mb-4 text-red-500">⚠️</div>
-            <h2 class="text-2xl font-bold mb-4">Reset All Data?</h2>
-            <p class="text-lg mb-6">This will permanently delete all players, teams, games, and statistics. This action cannot be undone!</p>
-            <div class="flex space-x-4 justify-center">
-                <button onclick="resetAllData()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium">
-                    <i class="fas fa-trash-alt mr-2"></i>Yes, Reset Everything
+            <h2 class="text-2xl font-bold mb-4">Reset Data</h2>
+            <p class="text-lg mb-6">Choose what you would like to reset.</p>
+            <div class="flex flex-col space-y-4 justify-center">
+                <button onclick="resetTodayData()" class="bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-6 rounded-lg font-medium">
+                    <i class="fas fa-calendar-day mr-2"></i>Reset Today's Data
                 </button>
-                <button onclick="closeResetModal()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-medium">
+                <button onclick="resetAllData()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium">
+                    <i class="fas fa-trash-alt mr-2"></i>Reset Everything
+                </button>
+                <button onclick="closeResetModal()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-medium mt-4">
                     <i class="fas fa-times mr-2"></i>Cancel
                 </button>
             </div>
@@ -916,6 +950,18 @@
         function closeResetModal() {
             document.getElementById('resetModal').classList.add('hidden');
         }
+        
+        function resetTodayData() {
+            if (!confirm("Are you sure you want to delete all games from today? This cannot be undone.")) return;
+            const today = new Date().toDateString();
+            games = games.filter(g => new Date(g.date).toDateString() !== today);
+            localStorage.setItem('dominoGames', JSON.stringify(games));
+            
+            closeResetModal();
+            refreshAllData();
+            alert("Today's games have been reset.");
+        }
+
 
         function resetAllData() {
             if (!confirm("Are you absolutely sure you want to delete all data? This cannot be undone.")) return;
@@ -2213,7 +2259,9 @@
             
             loadTeamRankings(period);
             loadPlayerStats(period);
-            loadPerformanceChart(period);
+            loadOpponentComparison();
+            loadStreaks(period);
+            loadPetarollLeaders(period);
         }
 
         function loadTeamRankings(period) {
@@ -2342,50 +2390,218 @@
             document.getElementById('playerStats').innerHTML = playersHtml || '<p class="text-gray-500 dark:text-gray-400">No games played in this period</p>';
         }
 
-        function loadPerformanceChart(period) {
-            const ctx = document.getElementById('performanceChart').getContext('2d');
-            const filteredGames = filterGamesByPeriod(games, period);
+        function loadOpponentComparison() {
+            const select1 = document.getElementById('comparison-select1');
+            const select2 = document.getElementById('comparison-select2');
             
-            const gamesByDate = {};
-            filteredGames.forEach(game => {
-                const date = new Date(game.date).toDateString();
-                if (!gamesByDate[date]) gamesByDate[date] = 0;
-                gamesByDate[date] += game.gameValue || 1;
-            });
+            let options = '<option value="">Select Player/Team</option>';
+            players.forEach(p => options += `<option value="player:${p.name}">${p.name}</option>`);
+            teams.forEach(t => options += `<option value="team:${t.id}">${t.player1} & ${t.player2}</option>`);
             
-            const dates = Object.keys(gamesByDate).sort((a,b) => new Date(a) - new Date(b));
-            const counts = dates.map(date => gamesByDate[date]);
+            select1.innerHTML = options;
+            select2.innerHTML = options;
             
-            if (chartInstances.performanceChart) {
-                chartInstances.performanceChart.destroy();
-            }
-            
-            chartInstances.performanceChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: dates.map(date => new Date(date).toLocaleDateString()),
-                    datasets: [{
-                        label: 'Game Points',
-                        data: counts,
-                        borderColor: 'rgba(59, 130, 246, 1)',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
+            document.getElementById('comparison-period-selector').addEventListener('change', runOpponentComparison);
+            resetOpponentComparison();
+        }
+
+        function resetOpponentComparison() {
+            document.getElementById('comparison-select1').value = '';
+            document.getElementById('comparison-select2').value = '';
+            document.getElementById('comparison-results').innerHTML = '';
+        }
+
+        function getOverallStats(entityId, period) {
+            const [type, id] = entityId.split(':');
+            const relevantGames = filterGamesByPeriod(games, period);
+            let wins = 0, losses = 0, petarollsGiven = 0, petarolled = 0;
+
+            relevantGames.forEach(game => {
+                if (type === 'player') {
+                    if(game.gameMode === 'single') {
+                        if(game.winner === id) {
+                            wins += game.gameValue || 1;
+                            if(game.isPetaroll) petarollsGiven++;
+                        }
+                        if(game.loser === id) {
+                            losses += game.gameValue || 1;
+                            if(game.isPetaroll) petarolled++;
+                        }
+                    } else { // team game
+                        const winnerTeam = teams.find(t => t.id === game.winner);
+                        const loserTeam = teams.find(t => t.id === game.loser);
+                        if(winnerTeam && (winnerTeam.player1 === id || winnerTeam.player2 === id)) {
+                            wins += game.gameValue || 1;
+                            if(game.isPetaroll) petarollsGiven++;
+                        }
+                        if(loserTeam && (loserTeam.player1 === id || loserTeam.player2 === id)) {
+                            losses += game.gameValue || 1;
+                            if(game.isPetaroll) petarolled++;
+                        }
+                    }
+                } else { // team
+                    if(game.gameMode === 'team') {
+                         if(game.winner === id) {
+                            wins += game.gameValue || 1;
+                            if(game.isPetaroll) petarollsGiven++;
+                        }
+                        if(game.loser === id) {
+                            losses += game.gameValue || 1;
+                            if(game.isPetaroll) petarolled++;
                         }
                     }
                 }
             });
+            const totalGames = wins + losses;
+            const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(1) + '%' : 'N/A';
+
+            return { wins, losses, winRate, petarollsGiven, petarolled };
+        }
+
+        function runOpponentComparison() {
+            const select1Val = document.getElementById('comparison-select1').value;
+            const select2Val = document.getElementById('comparison-select2').value;
+            const period = document.querySelector('input[name="comparison-period"]:checked').value;
+            const resultsDiv = document.getElementById('comparison-results');
+
+            if (!select1Val || !select2Val) {
+                resultsDiv.innerHTML = '';
+                return;
+            }
+
+            if (select1Val === select2Val) {
+                resultsDiv.innerHTML = '<p class="text-sm text-red-500">Please select two different opponents.</p>';
+                return;
+            }
+
+            const stats1 = getOverallStats(select1Val, period);
+            const stats2 = getOverallStats(select2Val, period);
+
+            const name1 = select1Val.startsWith('player:') ? select1Val.split(':')[1] : teams.find(t=>t.id===select1Val.split(':')[1]).player1 + ' & ' + teams.find(t=>t.id===select1Val.split(':')[1]).player2;
+            const name2 = select2Val.startsWith('player:') ? select2Val.split(':')[1] : teams.find(t=>t.id===select2Val.split(':')[1]).player1 + ' & ' + teams.find(t=>t.id===select2Val.split(':')[1]).player2;
+
+            resultsDiv.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 text-center mt-2">
+                    <div>
+                        <div class="font-bold">${name1}</div>
+                        <div class="text-sm">${stats1.wins}W - ${stats1.losses}L</div>
+                        <div class="text-xs text-gray-500">${stats1.winRate}</div>
+                        <div class="text-xs mt-1">Petarolls: ${stats1.petarollsGiven}</div>
+                        <div class="text-xs">Petarolled: ${stats1.petarolled}</div>
+                    </div>
+                    <div>
+                        <div class="font-bold">${name2}</div>
+                        <div class="text-sm">${stats2.wins}W - ${stats2.losses}L</div>
+                        <div class="text-xs text-gray-500">${stats2.winRate}</div>
+                        <div class="text-xs mt-1">Petarolls: ${stats2.petarollsGiven}</div>
+                        <div class="text-xs">Petarolled: ${stats2.petarolled}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadStreaks(period) {
+            const filteredGames = filterGamesByPeriod(games, period).sort((a,b) => new Date(a.date) - new Date(b.date));
+            const streaks = {}; // { id: { name, currentStreak, type } }
+
+            const allEntities = [
+                ...players.map(p => ({ id: `player:${p.name}`, name: p.name, type: 'player' })),
+                ...teams.map(t => ({ id: `team:${t.id}`, name: `${t.player1} & ${t.player2}`, type: 'team' }))
+            ];
+
+            allEntities.forEach(e => {
+                streaks[e.id] = { name: e.name, currentStreak: 0, type: 'none' };
+            });
+
+            filteredGames.forEach(game => {
+                const winnerId = game.gameMode === 'single' ? `player:${game.winner}` : `team:${game.winner}`;
+                const loserId = game.gameMode === 'single' ? `player:${game.loser}` : `team:${game.loser}`;
+                
+                // Winner
+                if (streaks[winnerId]) {
+                    if (streaks[winnerId].type === 'win') {
+                        streaks[winnerId].currentStreak++;
+                    } else {
+                        streaks[winnerId].type = 'win';
+                        streaks[winnerId].currentStreak = 1;
+                    }
+                }
+
+                // Loser
+                 if (streaks[loserId]) {
+                    if (streaks[loserId].type === 'loss') {
+                        streaks[loserId].currentStreak++;
+                    } else {
+                        streaks[loserId].type = 'loss';
+                        streaks[loserId].currentStreak = 1;
+                    }
+                }
+            });
+
+            const winningStreaks = Object.values(streaks).filter(s => s.type === 'win' && s.currentStreak > 1).sort((a,b) => b.currentStreak - a.currentStreak);
+            const losingStreaks = Object.values(streaks).filter(s => s.type === 'loss' && s.currentStreak > 1).sort((a,b) => b.currentStreak - a.currentStreak);
+
+            let html = '<div><h4 class="font-bold text-green-500">Winning Streaks</h4>';
+            if(winningStreaks.length > 0) {
+                html += winningStreaks.slice(0,3).map(s => `<div class="text-sm">${s.name}: ${s.currentStreak} wins</div>`).join('');
+            } else {
+                html += '<div class="text-sm text-gray-500">None</div>';
+            }
+            html += '</div>';
+
+            html += '<div class="mt-4"><h4 class="font-bold text-red-500">Losing Streaks</h4>';
+            if(losingStreaks.length > 0) {
+                html += losingStreaks.slice(0,3).map(s => `<div class="text-sm">${s.name}: ${s.currentStreak} losses</div>`).join('');
+            } else {
+                 html += '<div class="text-sm text-gray-500">None</div>';
+            }
+            html += '</div>';
+            
+            document.getElementById('streaks-slumps-list').innerHTML = html;
+        }
+
+        function loadPetarollLeaders(period) {
+            const filteredGames = filterGamesByPeriod(games, period).filter(g => g.isPetaroll);
+            const petarollers = {};
+            const petarolled = {};
+
+            const allEntities = [
+                ...players.map(p => ({ id: `player:${p.name}`, name: p.name, type: 'player' })),
+                ...teams.map(t => ({ id: `team:${t.id}`, name: `${t.player1} & ${t.player2}`, type: 'team' }))
+            ];
+
+            allEntities.forEach(e => {
+                petarollers[e.id] = { name: e.name, count: 0 };
+                petarolled[e.id] = { name: e.name, count: 0 };
+            });
+
+            filteredGames.forEach(game => {
+                const winnerId = game.gameMode === 'single' ? `player:${game.winner}` : `team:${game.winner}`;
+                const loserId = game.gameMode === 'single' ? `player:${game.loser}` : `team:${game.loser}`;
+                if(petarollers[winnerId]) petarollers[winnerId].count++;
+                if(petarolled[loserId]) petarolled[loserId].count++;
+            });
+
+            const topPetarollers = Object.values(petarollers).filter(p => p.count > 0).sort((a,b) => b.count - a.count);
+            const topPetarolled = Object.values(petarolled).filter(p => p.count > 0).sort((a,b) => b.count - a.count);
+
+            let html = '<div><h4 class="font-bold text-yellow-500">Most Petarolls Given</h4>';
+            if(topPetarollers.length > 0) {
+                html += topPetarollers.slice(0,3).map(p => `<div class="text-sm">${p.name}: ${p.count}</div>`).join('');
+            } else {
+                html += '<div class="text-sm text-gray-500">None</div>';
+            }
+            html += '</div>';
+
+            html += '<div class="mt-4"><h4 class="font-bold text-red-700">Most Petarolled</h4>';
+             if(topPetarolled.length > 0) {
+                html += topPetarolled.slice(0,3).map(p => `<div class="text-sm">${p.name}: ${p.count}</div>`).join('');
+            } else {
+                 html += '<div class="text-sm text-gray-500">None</div>';
+            }
+            html += '</div>';
+
+            document.getElementById('petaroll-leaders-list').innerHTML = html;
         }
 
         function filterGamesByPeriod(games, period) {
