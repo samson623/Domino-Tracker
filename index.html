@@ -2457,27 +2457,37 @@
         }
 
         function parseVoiceCommand(command) {
-            const parts = command.split(' ');
+            const outputEl = document.getElementById('voiceOutput');
             const scoreMatch = command.match(/\d+/);
+
             if (!scoreMatch) {
-                document.getElementById('voiceOutput').textContent += ' - No score found.';
+                outputEl.textContent += ' - No score found in command.';
                 return;
             }
             const points = parseInt(scoreMatch[0], 10);
 
             let team = 0;
-            if (command.includes('team 1') || command.includes('player 1')) {
-                team = 1;
-            } else if (command.includes('team 2') || command.includes('player 2')) {
+            // Check for Team 2 (Red) keywords first
+            if (command.includes('red') || command.includes('read') || command.includes('team 2') || command.includes('player 2')) {
                 team = 2;
+            } 
+            // Check for Team 1 (Blue) keywords
+            else if (command.includes('blue') || command.includes('team 1') || command.includes('player 1')) {
+                team = 1;
             }
 
             if (team && points) {
-                addScore(team, points);
+                const customScoreInput = document.getElementById(`customScore${team}`);
+                if (customScoreInput) {
+                    customScoreInput.value = points;
+                    addCustomScore(team);
+                    outputEl.textContent += ` - Added ${points} to Team ${team}.`;
+                }
             } else {
-                document.getElementById('voiceOutput').textContent += ' - Could not understand command.';
+                outputEl.textContent += ' - Could not determine the team. Please say "blue" or "red".';
             }
         }
+
 
         // Initialize app
         function initApp() {
