@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <style>
         /* Dark mode base styles */
         .dark {
@@ -405,11 +406,11 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Player 1</label>
-                                    <input type="text" id="gameTeam1Player1Input" class="w-full p-3 border rounded-lg" placeholder="Player 1 name">
+                                    <select id="gameTeam1Player1Input" class="w-full p-3 border rounded-lg"></select>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Player 2</label>
-                                    <input type="text" id="gameTeam1Player2Input" class="w-full p-3 border rounded-lg" placeholder="Player 2 name">
+                                    <select id="gameTeam1Player2Input" class="w-full p-3 border rounded-lg"></select>
                                 </div>
                             </div>
                             <div class="space-y-4">
@@ -422,11 +423,11 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Player 1</label>
-                                    <input type="text" id="gameTeam2Player1Input" class="w-full p-3 border rounded-lg" placeholder="Player 1 name">
+                                    <select id="gameTeam2Player1Input" class="w-full p-3 border rounded-lg"></select>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Player 2</label>
-                                    <input type="text" id="gameTeam2Player2Input" class="w-full p-3 border rounded-lg" placeholder="Player 2 name">
+                                    <select id="gameTeam2Player2Input" class="w-full p-3 border rounded-lg"></select>
                                 </div>
                             </div>
                         </div>
@@ -823,16 +824,26 @@
 
     <!-- Export Modal -->
     <div id="exportModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="domino-card p-8 m-4 max-w-md w-full text-center">
-            <div class="text-6xl mb-4">💾</div>
-            <h2 class="text-2xl font-bold mb-4">Export Data</h2>
-            <p class="text-lg mb-6">Download a backup of all your players, teams and game data.</p>
-            <div class="flex space-x-4 justify-center">
-                <button onclick="exportData()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg font-medium">
-                    <i class="fas fa-download mr-2"></i>Download Backup
+        <div class="domino-card p-8 m-4 max-w-lg w-full">
+            <h2 class="text-2xl font-bold mb-4 text-center">Export Data</h2>
+            <p class="text-center mb-6">Choose a format to download your data.</p>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="exportDataAs('pdf')" class="bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center">
+                    <i class="fas fa-file-pdf mr-2"></i>Export as PDF
                 </button>
-                <button onclick="closeExportModal()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-medium">
-                    <i class="fas fa-times mr-2"></i>Cancel
+                <button onclick="exportDataAs('csv')" class="bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center">
+                    <i class="fas fa-file-csv mr-2"></i>Export as CSV
+                </button>
+                <button onclick="exportDataAs('txt')" class="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center">
+                    <i class="fas fa-file-alt mr-2"></i>Export as TXT
+                </button>
+                <button onclick="exportData()" class="bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center">
+                    <i class="fas fa-file-code mr-2"></i>Export as JSON
+                </button>
+            </div>
+            <div class="text-center mt-6">
+                <button onclick="closeExportModal()" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 px-6 rounded-lg font-medium">
+                    Cancel
                 </button>
             </div>
         </div>
@@ -941,6 +952,61 @@
             
             closeExportModal();
         }
+
+        function exportDataAs(format) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            let dataString = '';
+            let fileExtension = '';
+
+            const header = `Domino Tracker Data Export - ${new Date().toLocaleString()}\n\n`;
+
+            // Players Data
+            dataString += 'Players\n';
+            dataString += 'ID,Name\n';
+            players.forEach(p => {
+                dataString += `${p.id},${p.name}\n`;
+            });
+
+            // Teams Data
+            dataString += '\nTeams\n';
+            dataString += 'ID,Player 1,Player 2\n';
+            teams.forEach(t => {
+                dataString += `${t.id},${t.player1},${t.player2}\n`;
+            });
+
+            // Games Data
+            dataString += '\nGames\n';
+            dataString += 'ID,Date,Mode,Winner,Loser,Winner Score,Loser Score,Petaroll\n';
+            games.forEach(g => {
+                const winnerName = g.gameMode === 'team' ? teams.find(t => t.id === g.winner)?.player1 + ' & ' + teams.find(t => t.id === g.winner)?.player2 : g.winner;
+                const loserName = g.gameMode === 'team' ? teams.find(t => t.id === g.loser)?.player1 + ' & ' + teams.find(t => t.id === g.loser)?.player2 : g.loser;
+                dataString += `${g.id},${new Date(g.date).toLocaleString()},${g.gameMode},"${winnerName}","${loserName}",${g.winnerScore},${g.loserScore},${g.isPetaroll ? 'Yes' : 'No'}\n`;
+            });
+
+            if (format === 'pdf') {
+                doc.text(header, 10, 10);
+                doc.text(dataString, 10, 20);
+                doc.save('domino-tracker-data.pdf');
+            } else {
+                if (format === 'csv') {
+                    fileExtension = 'csv';
+                } else {
+                    fileExtension = 'txt';
+                }
+                const blob = new Blob([header + dataString], { type: `text/${fileExtension};charset=utf-8;` });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", `domino-tracker-data.${fileExtension}`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            closeExportModal();
+        }
+
 
         // Reset functionality
         function showResetModal() {
@@ -1460,6 +1526,12 @@
         }
 
         function populateSelectionDropdowns() {
+            const playerOptions = ['<option value="">Select player</option>'];
+            players.forEach(player => {
+                playerOptions.push(`<option value="${player.name}">${player.name}</option>`);
+            });
+            const playerOptionsHtml = playerOptions.join('');
+
             if (currentGameMode === 'team') {
                 // Team mode dropdowns should show both players and teams
                 const teamOptions = ['<option value="">Select team or player</option>'];
@@ -1477,17 +1549,17 @@
                 const optionsHtml = teamOptions.join('');
                 document.getElementById('gameTeam1Selection').innerHTML = optionsHtml;
                 document.getElementById('gameTeam2Selection').innerHTML = optionsHtml;
+
+                // Populate the new player select dropdowns
+                document.getElementById('gameTeam1Player1Input').innerHTML = playerOptionsHtml;
+                document.getElementById('gameTeam1Player2Input').innerHTML = playerOptionsHtml;
+                document.getElementById('gameTeam2Player1Input').innerHTML = playerOptionsHtml;
+                document.getElementById('gameTeam2Player2Input').innerHTML = playerOptionsHtml;
                 
             } else if (currentGameMode === 'single') {
-                // Single mode dropdowns should show only players
-                const playerOptions = ['<option value="">Select player</option>'];
-                players.forEach(player => {
-                    playerOptions.push(`<option value="${player.name}">${player.name}</option>`);
-                });
-                
-                const optionsHtml = playerOptions.join('');
-                document.getElementById('player1Select').innerHTML = optionsHtml;
-                document.getElementById('player2Select').innerHTML = optionsHtml;
+                // Single mode dropdowns show only players
+                document.getElementById('player1Select').innerHTML = playerOptionsHtml;
+                document.getElementById('player2Select').innerHTML = playerOptionsHtml;
             }
         }
 
