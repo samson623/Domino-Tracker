@@ -200,19 +200,7 @@
             -moz-appearance: textfield;
         }
 
-        .achievement-badge {
-            background: linear-gradient(45deg, #34D399, #10B981);
-            color: #000;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
-            display: inline-block;
-            margin-right: 4px;
-            margin-bottom: 4px;
-        }
-
-        #achievementToast {
+        #achievementToast, #toast {
             position: fixed;
             bottom: 1rem;
             left: 50%;
@@ -223,6 +211,21 @@
             border-radius: 9999px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
             z-index: 100;
+        }
+        
+        /* Custom Scrollbar for Achievements */
+        #achievementsList::-webkit-scrollbar {
+          width: 6px;
+        }
+        #achievementsList::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        #achievementsList::-webkit-scrollbar-thumb {
+          background-color: #a0aec0;
+          border-radius: 20px;
+        }
+        .dark #achievementsList::-webkit-scrollbar-thumb {
+          background-color: #4a5568;
         }
     </style>
 </head>
@@ -351,7 +354,7 @@
                         <i class="fas fa-award mr-2 text-green-500"></i>
                         Achievements
                     </h3>
-                    <div id="achievementsList" class="space-y-1 text-sm">
+                    <div id="achievementsList" class="space-y-3 text-sm max-h-60 overflow-y-auto pr-2">
                         <!-- Dynamic content -->
                     </div>
                 </div>
@@ -770,7 +773,7 @@
                         <i class="fas fa-chart-line mr-2 text-purple-500"></i>
                         Streaks & Slumps
                     </h3>
-                    <div id="streaks-slumps-list"></div>
+                    <div id="streaks-slumps-list" class="space-y-4"></div>
                 </div>
 
                 <!-- PETAROLL Leaders -->
@@ -779,7 +782,7 @@
                         <i class="fas fa-fire-alt mr-2 text-orange-500"></i>
                         PETAROLL Leaders
                     </h3>
-                    <div id="petaroll-leaders-list"></div>
+                    <div id="petaroll-leaders-list" class="space-y-4"></div>
                 </div>
             </div>
         </div>
@@ -821,6 +824,29 @@
             </div>
         </div>
     </div>
+    
+    <!-- Generic Confirmation Modal -->
+    <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="domino-card p-8 m-4 max-w-md w-full text-center">
+            <div id="confirmModalIcon" class="text-6xl mb-4 text-red-500">⚠️</div>
+            <h2 id="confirmModalTitle" class="text-2xl font-bold mb-4">Are you sure?</h2>
+            <p id="confirmModalMessage" class="text-lg mb-6">This action cannot be undone.</p>
+            <div class="flex space-x-4 justify-center">
+                <button id="confirmModalConfirmBtn" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium">
+                    Confirm
+                </button>
+                <button onclick="closeConfirmModal()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-medium">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Toast Notification -->
+    <div id="toast" class="hidden fixed bottom-4 right-4 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg">
+        <p id="toastMessage"></p>
+    </div>
+
 
     <!-- Export Modal -->
     <div id="exportModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
@@ -886,14 +912,66 @@
         let turnTimer = null;
         let remainingTime = 0;
         let editingGameId = null;
+        
         let achievements = JSON.parse(localStorage.getItem('dominoAchievements')) || {};
+        let streaks = JSON.parse(localStorage.getItem('dominoStreaks')) || {};
         const achievementDefinitions = {
-            tenWins: '🏅 Ten Wins',
-            anyPetaroll: '🔥 Any PETAROLL'
+            tenWins: { text: 'Ten Wins Club', icon: '🏅', description: 'Win 10 games' },
+            anyPetaroll: { text: 'First PETAROLL', icon: '🔥', description: 'Achieve your first PETAROLL' },
+            comebackKing: { text: 'Comeback King', icon: '👑', description: 'Win after being down by 50+ points' },
+            dominator: { text: 'Dominator', icon: '🏆', description: 'Win 5 games in a row' }
         };
+        
         let pendingWinType = null;
         let recognition;
         let isMicOn = false;
+
+        // Sound Effects using Web Audio API
+        let audioCtx;
+        function initAudio() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.error("Web Audio API is not supported in this browser");
+            }
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.01);
+
+
+            switch(type) {
+                case 'addScore':
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(660, audioCtx.currentTime); // E5
+                    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.2);
+                    break;
+                case 'win':
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    oscillator.frequency.linearRampToValueAtTime(1046.50, audioCtx.currentTime + 0.4); // C6
+                    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+                    break;
+                case 'petaroll':
+                     oscillator.type = 'sawtooth';
+                    oscillator.frequency.setValueAtTime(783.99, audioCtx.currentTime); // G5
+                    oscillator.frequency.linearRampToValueAtTime(1046.50, audioCtx.currentTime + 0.2); // C6
+                    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.6);
+                    break;
+            }
+
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 1);
+        }
+
 
         // Theme management
         function initTheme() {
@@ -936,8 +1014,10 @@
                 players: players,
                 teams: teams,
                 games: games,
+                achievements: achievements,
+                streaks: streaks,
                 exportDate: new Date().toISOString(),
-                version: '1.1'
+                version: '1.2'
             };
             
             const dataStr = JSON.stringify(data, null, 2);
@@ -1018,38 +1098,58 @@
         }
         
         function resetTodayData() {
-            if (!confirm("Are you sure you want to delete all games from today? This cannot be undone.")) return;
-            const today = new Date().toDateString();
-            games = games.filter(g => new Date(g.date).toDateString() !== today);
-            localStorage.setItem('dominoGames', JSON.stringify(games));
-            
-            closeResetModal();
-            refreshAllData();
-            alert("Today's games have been reset.");
+            showConfirmModal(
+                'Reset Today\'s Data',
+                'Are you sure you want to delete all games from today? This action cannot be undone.',
+                () => {
+                    const today = new Date().toDateString();
+                    games = games.filter(g => new Date(g.date).toDateString() !== today);
+                    localStorage.setItem('dominoGames', JSON.stringify(games));
+
+                    // Filter out achievements earned today
+                    for (const entityId in achievements) {
+                        achievements[entityId] = achievements[entityId].filter(ach => {
+                            return new Date(ach.date).toDateString() !== today;
+                        });
+                    }
+                    localStorage.setItem('dominoAchievements', JSON.stringify(achievements));
+                    
+                    closeResetModal();
+                    refreshAllData();
+                    showToast("Today's games and achievements have been reset.");
+                }
+            );
         }
 
 
         function resetAllData() {
-            if (!confirm("Are you absolutely sure you want to delete all data? This cannot be undone.")) return;
-            localStorage.removeItem('dominoPlayers');
-            localStorage.removeItem('dominoTeams');
-            localStorage.removeItem('dominoGames');
-            localStorage.removeItem('dominoAchievements');
-            
-            players = [];
-            teams = [];
-            games = [];
-            achievements = {};
-            currentGame = null;
-            
-            Object.values(chartInstances).forEach(chart => {
-                if (chart) chart.destroy();
-            });
-            chartInstances = {};
-            
-            closeResetModal();
-            showSection(currentSection);
-            alert('All data has been reset successfully!');
+            showConfirmModal(
+                'Reset Everything',
+                'Are you absolutely sure you want to delete all data? This action cannot be undone.',
+                () => {
+                    localStorage.removeItem('dominoPlayers');
+                    localStorage.removeItem('dominoTeams');
+                    localStorage.removeItem('dominoGames');
+                    localStorage.removeItem('dominoAchievements');
+                    localStorage.removeItem('dominoStreaks');
+                    
+                    players = [];
+                    teams = [];
+                    games = [];
+                    achievements = {};
+                    streaks = {};
+                    currentGame = null;
+                    
+                    Object.values(chartInstances).forEach(chart => {
+                        if (chart) chart.destroy();
+                    });
+                    chartInstances = {};
+                    
+                    closeResetModal();
+                    refreshAllData();
+                    showToast('All data has been reset successfully!');
+                }
+            );
         }
 
         // Navigation
@@ -1089,6 +1189,9 @@
             }
             if (currentSection === 'leaderboard') {
                 loadLeaderboard();
+            }
+            if (currentSection === 'home') {
+                loadAchievements();
             }
         }
         
@@ -1227,49 +1330,122 @@
             document.getElementById('recentGames').innerHTML = recentHtml || '<p class="text-gray-500 dark:text-gray-400 text-sm">No recent games</p>';
         }
 
+        function getShortName(entityName) {
+            if (entityName.includes(' & ')) {
+                const names = entityName.split(' & ');
+                return names.map(name => name.charAt(0)).join(' & ');
+            }
+            return entityName;
+        }
+
         function loadAchievements() {
             const listEl = document.getElementById('achievementsList');
-            const unlocked = Object.keys(achievements).filter(key => achievements[key]);
-            const html = unlocked.map(key => {
-                const value = achievements[key];
-                const winner = value && typeof value === 'object' ? ` - ${value.winner}` : '';
-                return `<span class="achievement-badge">${achievementDefinitions[key]}${winner}</span>`;
-            }).join('');
-            listEl.innerHTML = html || '<p class="text-gray-500 dark:text-gray-400">No achievements yet</p>';
+            let html = '';
+            
+            const allEntities = [
+                ...players.map(p => ({ id: `player:${p.name}`, name: p.name })),
+                ...teams.map(t => ({ id: `team:${t.id}`, name: `${t.player1} & ${t.player2}` }))
+            ];
+            
+            const allUnlockedAchievements = {};
+            for (const entityId in achievements) {
+                if (achievements.hasOwnProperty(entityId)) {
+                    achievements[entityId].forEach(ach => {
+                        if (!allUnlockedAchievements[ach.key]) {
+                            allUnlockedAchievements[ach.key] = [];
+                        }
+                        allUnlockedAchievements[ach.key].push(getShortName(getEntityName(entityId)));
+                    });
+                }
+            }
+
+            for (const key in achievementDefinitions) {
+                const definition = achievementDefinitions[key];
+                const unlockedBy = allUnlockedAchievements[key];
+
+                if (unlockedBy) {
+                    html += `<button class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-medium flex items-center" title="${definition.description} - Unlocked by: ${unlockedBy.join(', ')}">
+                                <span class="w-8 text-center">${definition.icon}</span>
+                                <span>${definition.text} - ${unlockedBy.join(', ')}</span>
+                             </button>`;
+                } else {
+                    html += `
+                        <button class="w-full bg-blue-500 text-white py-3 px-4 rounded-lg font-medium opacity-70 cursor-not-allowed flex items-center" title="${definition.description} (Locked)">
+                            <span class="w-8 text-center"><i class="fas fa-lock"></i></span>
+                            <span>${definition.icon} ${definition.text}</span>
+                        </button>
+                    `;
+                }
+            }
+
+            listEl.innerHTML = html || '<p class="text-gray-500 dark:text-gray-400">No achievements defined.</p>';
         }
 
-        function getWinnerName(game) {
-            if (!game) return 'Unknown';
-            if (game.gameMode === 'single') {
-                return game.winner;
-            } else {
-                const team = teams.find(t => t.id === game.winner);
-                return team ? `${team.player1} & ${team.player2}` : 'Unknown';
+
+        function getEntityName(entityId) {
+            if (!entityId) return 'Unknown';
+            const [type, id] = entityId.split(':');
+            if (type === 'player') {
+                return id;
+            } else if (type === 'team') {
+                const team = teams.find(t => t.id === id);
+                return team ? `${team.player1} & ${team.player2}` : 'Unknown Team';
             }
+            return 'Unknown';
         }
 
-        function checkAchievements() {
-            const totalWins = games.reduce((sum, g) => sum + (g.gameValue || 1), 0);
-            let updated = false;
-            const lastGame = games[games.length - 1];
+        function grantAchievement(entityId, achievementKey) {
+            if (!entityId || !achievementKey) return;
+
+            achievements[entityId] = achievements[entityId] || [];
             
-            if (totalWins >= 10 && !achievements.tenWins) {
-                const winnerName = getWinnerName(lastGame);
-                achievements.tenWins = { winner: winnerName };
-                showAchievement('Achievement Unlocked: ' + achievementDefinitions.tenWins + ' - ' + winnerName);
-                updated = true;
+            if (achievements[entityId].some(ach => typeof ach === 'string')) {
+                achievements[entityId] = achievements[entityId].map(ach => {
+                    if (typeof ach === 'string') {
+                        return { key: ach, date: new Date(0).toISOString() }; 
+                    }
+                    return ach;
+                });
             }
-            
-            if (lastGame && lastGame.isPetaroll && !achievements.anyPetaroll) {
-                const winnerName = getWinnerName(lastGame);
-                achievements.anyPetaroll = { winner: winnerName };
-                showAchievement('Achievement Unlocked: ' + achievementDefinitions.anyPetaroll + ' - ' + winnerName);
-                updated = true;
-            }
-            
-            if (updated) {
+
+            const alreadyUnlocked = achievements[entityId].some(ach => ach.key === achievementKey);
+
+            if (!alreadyUnlocked) {
+                achievements[entityId].push({ key: achievementKey, date: new Date().toISOString() });
                 localStorage.setItem('dominoAchievements', JSON.stringify(achievements));
+                const entityName = getEntityName(entityId);
+                showAchievement(`Achievement Unlocked for ${entityName}: ${achievementDefinitions[achievementKey].text}`);
                 loadAchievements();
+            }
+        }
+        
+        function checkAllAchievements(gameRecord) {
+            const winnerId = gameRecord.gameMode === 'team' ? `team:${gameRecord.winner}` : `player:${gameRecord.winner}`;
+            const loserId = gameRecord.gameMode === 'team' ? `team:${gameRecord.loser}` : `player:${gameRecord.loser}`;
+
+            if (gameRecord.isPetaroll) {
+                grantAchievement(winnerId, 'anyPetaroll');
+            }
+
+            const winnerTotalWins = games.filter(g => {
+                if (g.gameMode === 'team' && winnerId.startsWith('team')) return g.winner === winnerId.split(':')[1];
+                if (g.gameMode === 'single' && winnerId.startsWith('player')) return g.winner === winnerId.split(':')[1];
+                return false;
+            }).reduce((sum, g) => sum + (g.gameValue || 1), 0);
+            if(winnerTotalWins >= 10) {
+                grantAchievement(winnerId, 'tenWins');
+            }
+
+            if(gameRecord.wasComeback) {
+                grantAchievement(winnerId, 'comebackKing');
+            }
+
+            streaks[winnerId] = (streaks[winnerId] || 0) + 1;
+            streaks[loserId] = 0; // Reset loser's streak
+            localStorage.setItem('dominoStreaks', JSON.stringify(streaks));
+            
+            if (streaks[winnerId] >= 5) {
+                grantAchievement(winnerId, 'dominator');
             }
         }
 
@@ -1277,7 +1453,7 @@
             const toast = document.getElementById('achievementToast');
             toast.textContent = message;
             toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 3000);
+            setTimeout(() => toast.classList.add('hidden'), 4000);
         }
 
         function loadHistory() {
@@ -1314,6 +1490,7 @@
                                 <div class="font-medium">
                                     ${gameTypeIcon}${winnerName} ${game.isPetaroll ? 'PETAROLLED' : 'beat'} ${loserName}
                                     ${game.isPetaroll ? `<span class="petaroll-badge">PETAROLL</span>` : ''}
+                                    ${game.wasComeback ? `<span class="achievement-badge">👑</span>` : ''}
                                 </div>
                                 <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                     Score: ${game.winnerScore} - ${game.loserScore} | Duration: ${duration}
@@ -1338,12 +1515,16 @@
         }
 
         function deleteGame(gameId) {
-            if (confirm('Are you sure you want to delete this game? This will affect all statistics.')) {
-                games = games.filter(g => g.id != gameId);
-                localStorage.setItem('dominoGames', JSON.stringify(games));
-                refreshAllData();
-                alert('Game deleted successfully!');
-            }
+            showConfirmModal(
+                'Delete Game',
+                'Are you sure you want to delete this game? This will affect all statistics.',
+                () => {
+                    games = games.filter(g => g.id != gameId);
+                    localStorage.setItem('dominoGames', JSON.stringify(games));
+                    refreshAllData();
+                    showToast('Game deleted successfully!');
+                }
+            );
         }
 
         function showEditGameModal(gameId) {
@@ -1603,13 +1784,13 @@
 
                 const allPlayerNames = [t1p1, t1p2, t2p1, t2p2];
                 if (allPlayerNames.some(name => name === '')) {
-                    alert('Please enter all four player names.');
+                    showToast('Please enter all four player names.');
                     return;
                 }
 
                 const uniqueNames = new Set(allPlayerNames.map(n => n.toLowerCase()));
                 if (uniqueNames.size !== 4) {
-                    alert('Please enter four unique player names for the game.');
+                    showToast('Please enter four unique player names for the game.');
                     return;
                 }
 
@@ -1637,11 +1818,11 @@
                 const player2Name = document.getElementById('player2Select').value.trim();
                 
                 if (!player1Name || !player2Name) {
-                    alert('Please select both players');
+                    showToast('Please select both players');
                     return;
                 }
                  if (player1Name.toLowerCase() === player2Name.toLowerCase()) {
-                    alert('Players must be different.');
+                    showToast('Players must be different.');
                     return;
                 }
 
@@ -1728,14 +1909,14 @@
             const customScore = parseInt(customScoreInput.value);
             
             if (isNaN(customScore) || customScore === 0) {
-                alert('Please enter a valid score');
+                showToast('Please enter a valid score');
                 return;
             }
             
             if (customScore < 0) {
                 const currentScore = team === 1 ? currentGame.score1 : currentGame.score2;
                 if (currentScore + customScore < 0) {
-                    alert('Score cannot go below 0');
+                    showToast('Score cannot go below 0');
                     return;
                 }
             }
@@ -1756,7 +1937,7 @@
             
             const currentScore = team === 1 ? currentGame.score1 : currentGame.score2;
             if (currentScore - customScore < 0) {
-                alert('Score cannot go below 0');
+                showToast('Score cannot go below 0');
                 return;
             }
             
@@ -1789,6 +1970,7 @@
                 team2Score: currentGame.score2,
             });
             
+            playSound('addScore');
             updateGameDisplay();
             
             const score1 = currentGame.score1;
@@ -1881,29 +2063,47 @@
                 entry.team2Score = currentGame.score2;
             });
         }
+        
+        // NEW: Checks for comeback king achievement
+        function checkForComeback(winnerTeamNum) {
+            if (!currentGame) return false;
+            
+            for(const entry of currentGame.history) {
+                if(winnerTeamNum === 1) { // Team 1 won
+                    if (entry.team2Score - entry.team1Score >= 50) return true;
+                } else { // Team 2 won
+                    if (entry.team1Score - entry.team2Score >= 50) return true;
+                }
+            }
+            return false;
+        }
 
         function declarePetaroll() {
             if (!currentGame) return;
             
             currentGame.ended = true;
             
-            let winner, loser, winnerScore, loserScore, winnerName, loserName;
+            let winner, loser, winnerScore, loserScore, winnerName, loserName, winnerTeamNum;
             
             if (currentGame.gameMode === 'team') {
-                winner = currentGame.score1 > currentGame.score2 ? currentGame.team1 : currentGame.team2;
-                loser = currentGame.score1 > currentGame.score2 ? currentGame.team2 : currentGame.team1;
+                winnerTeamNum = currentGame.score1 > currentGame.score2 ? 1 : 2;
+                winner = winnerTeamNum === 1 ? currentGame.team1 : currentGame.team2;
+                loser = winnerTeamNum === 1 ? currentGame.team2 : currentGame.team1;
                 winnerScore = Math.max(currentGame.score1, currentGame.score2);
                 loserScore = Math.min(currentGame.score1, currentGame.score2);
                 winnerName = `${winner.player1} & ${winner.player2}`;
                 loserName = `${loser.player1} & ${loser.player2}`;
             } else {
-                winner = currentGame.score1 > currentGame.score2 ? currentGame.player1 : currentGame.player2;
-                loser = currentGame.score1 > currentGame.score2 ? currentGame.player2 : currentGame.player1;
+                winnerTeamNum = currentGame.score1 > currentGame.score2 ? 1 : 2;
+                winner = winnerTeamNum === 1 ? currentGame.player1 : currentGame.player2;
+                loser = winnerTeamNum === 1 ? currentGame.player2 : currentGame.player1;
                 winnerScore = Math.max(currentGame.score1, currentGame.score2);
                 loserScore = Math.min(currentGame.score1, currentGame.score2);
                 winnerName = winner;
                 loserName = loser;
             }
+
+            const wasComeback = checkForComeback(winnerTeamNum);
 
             const gameRecord = {
                 id: Date.now(),
@@ -1915,9 +2115,10 @@
                 date: new Date().toISOString(),
                 duration: new Date().getTime() - currentGame.startTime.getTime(),
                 isPetaroll: true,
-                gameValue: 2
+                gameValue: 2,
+                wasComeback: wasComeback
             };
-                
+            
             games.push(gameRecord);
             localStorage.setItem('dominoGames', JSON.stringify(games));
 
@@ -1940,28 +2141,33 @@
                 </div>
             `;
             document.getElementById('winMessage').innerHTML = messageHtml;
+            playSound('petaroll');
 
             if (currentGame.score1 > currentGame.score2) matchWins1 += 2; else matchWins2 += 2;
-            handleMatchEnd(winnerName);
+            handleMatchEnd(winnerName, gameRecord);
         }
 
         function declareWinner() {
             if (!currentGame) return;
             currentGame.ended = true;
 
-            let winner, loser, winnerScore, loserScore, winnerName;
+            let winner, loser, winnerScore, loserScore, winnerName, winnerTeamNum;
 
             if (currentGame.gameMode === 'team') {
-                winner = currentGame.score1 >= 150 ? currentGame.team1 : currentGame.team2;
-                loser = currentGame.score1 >= 150 ? currentGame.team2 : currentGame.team1;
+                winnerTeamNum = currentGame.score1 >= 150 ? 1 : 2;
+                winner = winnerTeamNum === 1 ? currentGame.team1 : currentGame.team2;
+                loser = winnerTeamNum === 1 ? currentGame.team2 : currentGame.team1;
                 winnerName = `${winner.player1} & ${winner.player2}`;
             } else {
-                winner = currentGame.score1 >= 150 ? currentGame.player1 : currentGame.player2;
-                loser = currentGame.score1 >= 150 ? currentGame.player2 : currentGame.player1;
+                winnerTeamNum = currentGame.score1 >= 150 ? 1 : 2;
+                winner = winnerTeamNum === 1 ? currentGame.player1 : currentGame.player2;
+                loser = winnerTeamNum === 1 ? currentGame.player2 : currentGame.player1;
                 winnerName = winner;
             }
             winnerScore = Math.max(currentGame.score1, currentGame.score2);
             loserScore = Math.min(currentGame.score1, currentGame.score2);
+            
+            const wasComeback = checkForComeback(winnerTeamNum);
 
             const gameRecord = {
                 id: Date.now(),
@@ -1973,7 +2179,8 @@
                 date: new Date().toISOString(),
                 duration: new Date().getTime() - currentGame.startTime.getTime(),
                 isPetaroll: false,
-                gameValue: 1
+                gameValue: 1,
+                wasComeback: wasComeback
             };
             
             games.push(gameRecord);
@@ -1981,10 +2188,10 @@
 
             if (currentGame.score1 > currentGame.score2) matchWins1++; else matchWins2++;
             document.getElementById('winMessage').innerHTML = `<strong>${winnerName}</strong> wins!<br>Final Score: ${winnerScore} - ${loserScore}`;
-            handleMatchEnd(winnerName);
+            handleMatchEnd(winnerName, gameRecord);
         }
 
-        function handleMatchEnd(winnerName) {
+        function handleMatchEnd(winnerName, gameRecord) {
             updateMatchScoreDisplay();
             const requiredWins = Math.ceil(bestOf / 2);
             let seriesInfo = `<div class="mt-2">Series Score: ${matchWins1} - ${matchWins2}</div>`;
@@ -1997,7 +2204,8 @@
             }
             document.getElementById('winMessage').innerHTML += seriesInfo;
 
-            checkAchievements();
+            playSound('win');
+            checkAllAchievements(gameRecord);
             refreshAllData();
             document.getElementById('winModal').classList.remove('hidden');
             disableScoreButtons();
@@ -2086,7 +2294,7 @@
                 
                 if (remainingTime <= 0) {
                     stopTurnTimer();
-                    alert('Time\'s up!');
+                    showToast("Time's up!");
                 }
             }, 1000);
             
@@ -2166,7 +2374,7 @@
         function createPlayer() {
             const playerName = document.getElementById('newPlayerName').value.trim();
             if (!playerName) {
-                alert('Please enter a player name');
+                showToast('Please enter a player name');
                 return;
             }
             
@@ -2189,19 +2397,23 @@
             const playerToDelete = players.find(p => p.id === playerId);
             if (!playerToDelete) return;
             
-            const isPlayerInTeam = teams.some(team => team.player1 === playerToDelete.name || team.player2 === playerToDelete.name);
-            if (isPlayerInTeam) {
-                if (!confirm('This player is part of a team. Deleting them will also delete those teams. Are you sure?')) {
-                    return;
-                }
-                teams = teams.filter(team => team.player1 !== playerToDelete.name && team.player2 !== playerToDelete.name);
-                localStorage.setItem('dominoTeams', JSON.stringify(teams));
-            }
+            showConfirmModal(
+                'Delete Player',
+                `Are you sure you want to delete ${playerToDelete.name}? This will also remove them from any teams.`,
+                () => {
+                    const isPlayerInTeam = teams.some(team => team.player1 === playerToDelete.name || team.player2 === playerToDelete.name);
+                    if (isPlayerInTeam) {
+                        teams = teams.filter(team => team.player1 !== playerToDelete.name && team.player2 !== playerToDelete.name);
+                        localStorage.setItem('dominoTeams', JSON.stringify(teams));
+                    }
 
-            players = players.filter(p => p.id !== playerId);
-            localStorage.setItem('dominoPlayers', JSON.stringify(players));
-            loadPlayers();
-            if (currentSection === 'teams') loadTeams();
+                    players = players.filter(p => p.id !== playerId);
+                    localStorage.setItem('dominoPlayers', JSON.stringify(players));
+                    loadPlayers();
+                    if (currentSection === 'teams') loadTeams();
+                    showToast(`${playerToDelete.name} has been deleted.`);
+                }
+            );
         }
 
         // Teams Section
@@ -2262,12 +2474,12 @@
             const player2Name = document.getElementById('teamPlayer2Input').value.trim();
             
             if (!player1Name || !player2Name) {
-                alert('Please enter both player names');
+                showToast('Please enter both player names');
                 return;
             }
 
             if (player1Name.toLowerCase() === player2Name.toLowerCase()) {
-                alert('Please enter two different player names');
+                showToast('Please enter two different player names');
                 return;
             }
 
@@ -2302,11 +2514,16 @@
         }
 
         function deleteTeam(teamId) {
-            if (confirm('Are you sure you want to delete this team? This will not delete the players.')) {
-                teams = teams.filter(t => t.id !== teamId);
-                localStorage.setItem('dominoTeams', JSON.stringify(teams));
-                loadTeams();
-            }
+            showConfirmModal(
+                'Delete Team',
+                'Are you sure you want to delete this team? This will not delete the players.',
+                () => {
+                    teams = teams.filter(t => t.id !== teamId);
+                    localStorage.setItem('dominoTeams', JSON.stringify(teams));
+                    loadTeams();
+                    showToast('Team deleted successfully.');
+                }
+            );
         }
 
         // Leaderboard section
@@ -2550,7 +2767,7 @@
             const stats2 = getOverallStats(select2Val, period);
 
             const name1 = select1Val.startsWith('player:') ? select1Val.split(':')[1] : teams.find(t=>t.id===select1Val.split(':')[1]).player1 + ' & ' + teams.find(t=>t.id===select1Val.split(':')[1]).player2;
-            const name2 = select2Val.startsWith('player:') ? select2Val.split(':')[1] : teams.find(t=>t.id===select2Val.split(':')[1]).player1 + ' & ' + teams.find(t=>t.id===select2Val.split(':')[1]).player2;
+            const name2 = select2Val.startsWith('player:') ? select2Val.split(':')[1] : teams.find(t=>t.id===select1Val.split(':')[1]).player1 + ' & ' + teams.find(t=>t.id===select1Val.split(':')[1]).player2;
 
             resultsDiv.innerHTML = `
                 <div class="grid grid-cols-2 gap-4 text-center mt-2">
@@ -2574,7 +2791,7 @@
 
         function loadStreaks(period) {
             const filteredGames = filterGamesByPeriod(games, period).sort((a,b) => new Date(a.date) - new Date(b.date));
-            const streaks = {}; // { id: { name, currentStreak, type } }
+            const currentStreaks = {};
 
             const allEntities = [
                 ...players.map(p => ({ id: `player:${p.name}`, name: p.name, type: 'player' })),
@@ -2582,50 +2799,48 @@
             ];
 
             allEntities.forEach(e => {
-                streaks[e.id] = { name: e.name, currentStreak: 0, type: 'none' };
+                currentStreaks[e.id] = { name: e.name, currentStreak: 0, type: 'none' };
             });
 
             filteredGames.forEach(game => {
                 const winnerId = game.gameMode === 'single' ? `player:${game.winner}` : `team:${game.winner}`;
                 const loserId = game.gameMode === 'single' ? `player:${game.loser}` : `team:${game.loser}`;
                 
-                // Winner
-                if (streaks[winnerId]) {
-                    if (streaks[winnerId].type === 'win') {
-                        streaks[winnerId].currentStreak++;
+                if (currentStreaks[winnerId]) {
+                    if (currentStreaks[winnerId].type === 'win') {
+                        currentStreaks[winnerId].currentStreak++;
                     } else {
-                        streaks[winnerId].type = 'win';
-                        streaks[winnerId].currentStreak = 1;
+                        currentStreaks[winnerId].type = 'win';
+                        currentStreaks[winnerId].currentStreak = 1;
                     }
                 }
 
-                // Loser
-                 if (streaks[loserId]) {
-                    if (streaks[loserId].type === 'loss') {
-                        streaks[loserId].currentStreak++;
+                 if (currentStreaks[loserId]) {
+                    if (currentStreaks[loserId].type === 'loss') {
+                        currentStreaks[loserId].currentStreak++;
                     } else {
-                        streaks[loserId].type = 'loss';
-                        streaks[loserId].currentStreak = 1;
+                        currentStreaks[loserId].type = 'loss';
+                        currentStreaks[loserId].currentStreak = 1;
                     }
                 }
             });
 
-            const winningStreaks = Object.values(streaks).filter(s => s.type === 'win' && s.currentStreak > 1).sort((a,b) => b.currentStreak - a.currentStreak);
-            const losingStreaks = Object.values(streaks).filter(s => s.type === 'loss' && s.currentStreak > 1).sort((a,b) => b.currentStreak - a.currentStreak);
+            const winningStreaks = Object.values(currentStreaks).filter(s => s.type === 'win' && s.currentStreak > 1).sort((a,b) => b.currentStreak - a.currentStreak);
+            const losingStreaks = Object.values(currentStreaks).filter(s => s.type === 'loss' && s.currentStreak > 1).sort((a,b) => b.currentStreak - a.currentStreak);
 
-            let html = '<div><h4 class="font-bold text-green-500">Winning Streaks</h4>';
+            let html = '<div><h4 class="font-semibold text-green-500 dark:text-green-400">Winning Streaks</h4>';
             if(winningStreaks.length > 0) {
-                html += winningStreaks.slice(0,3).map(s => `<div class="text-sm">${s.name}: ${s.currentStreak} wins</div>`).join('');
+                html += winningStreaks.slice(0,3).map(s => `<div class="text-sm">${s.name}: <span class="font-semibold">${s.currentStreak} wins</span></div>`).join('');
             } else {
-                html += '<div class="text-sm text-gray-500">None</div>';
+                html += '<div class="text-sm text-gray-500 dark:text-gray-400">None</div>';
             }
             html += '</div>';
 
-            html += '<div class="mt-4"><h4 class="font-bold text-red-500">Losing Streaks</h4>';
+            html += '<div class="mt-4"><h4 class="font-semibold text-red-500 dark:text-red-400">Losing Streaks</h4>';
             if(losingStreaks.length > 0) {
-                html += losingStreaks.slice(0,3).map(s => `<div class="text-sm">${s.name}: ${s.currentStreak} losses</div>`).join('');
+                html += losingStreaks.slice(0,3).map(s => `<div class="text-sm">${s.name}: <span class="font-semibold">${s.currentStreak} losses</span></div>`).join('');
             } else {
-                 html += '<div class="text-sm text-gray-500">None</div>';
+                 html += '<div class="text-sm text-gray-500 dark:text-gray-400">None</div>';
             }
             html += '</div>';
             
@@ -2657,19 +2872,19 @@
             const topPetarollers = Object.values(petarollers).filter(p => p.count > 0).sort((a,b) => b.count - a.count);
             const topPetarolled = Object.values(petarolled).filter(p => p.count > 0).sort((a,b) => b.count - a.count);
 
-            let html = '<div><h4 class="font-bold text-yellow-500">Most Petarolls Given</h4>';
+            let html = '<div><h4 class="font-semibold text-yellow-500 dark:text-yellow-400">Most Petarolls Given</h4>';
             if(topPetarollers.length > 0) {
-                html += topPetarollers.slice(0,3).map(p => `<div class="text-sm">${p.name}: ${p.count}</div>`).join('');
+                html += topPetarollers.slice(0,3).map(p => `<div class="text-sm">${p.name}: <span class="font-semibold">${p.count}</span></div>`).join('');
             } else {
-                html += '<div class="text-sm text-gray-500">None</div>';
+                html += '<div class="text-sm text-gray-500 dark:text-gray-400">None</div>';
             }
             html += '</div>';
 
-            html += '<div class="mt-4"><h4 class="font-bold text-red-700">Most Petarolled</h4>';
+            html += '<div class="mt-4"><h4 class="font-semibold text-red-500 dark:text-red-400">Most Petarolled</h4>';
              if(topPetarolled.length > 0) {
-                html += topPetarolled.slice(0,3).map(p => `<div class="text-sm">${p.name}: ${p.count}</div>`).join('');
+                html += topPetarolled.slice(0,3).map(p => `<div class="text-sm">${p.name}: <span class="font-semibold">${p.count}</span></div>`).join('');
             } else {
-                 html += '<div class="text-sm text-gray-500">None</div>';
+                 html += '<div class="text-sm text-gray-500 dark:text-gray-400">None</div>';
             }
             html += '</div>';
 
@@ -2739,8 +2954,14 @@
             if (isMicOn) {
                 recognition.stop();
             } else {
-                if(currentGame) recognition.start();
-                else alert("Please start a game first.");
+                if(currentGame) {
+                    try {
+                        recognition.start();
+                    } catch(e) {
+                        console.error("Speech recognition error:", e);
+                    }
+                }
+                else showToast("Please start a game first.");
             }
         }
 
@@ -2776,10 +2997,43 @@
             }
         }
 
+        // NEW: Custom Modals and Toasts
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function showConfirmModal(title, message, onConfirm) {
+            document.getElementById('confirmModalTitle').textContent = title;
+            document.getElementById('confirmModalMessage').textContent = message;
+            const confirmBtn = document.getElementById('confirmModalConfirmBtn');
+            
+            // Clone and replace the button to remove old event listeners
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            
+            newConfirmBtn.addEventListener('click', () => {
+                onConfirm();
+                closeConfirmModal();
+            });
+            
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+        }
+
 
         // Initialize app
         function initApp() {
             initTheme();
+            initAudio(); // Initialize the audio context
             showSection('home');
             setupSpeechRecognition();
         }
