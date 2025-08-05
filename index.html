@@ -8,224 +8,230 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <style>
-        /* Design tokens and modern theme */
-        :root {
-            --bg: #f3f4f6;
-            --text: #0f172a;
-            --card: rgba(255,255,255,0.75);
-            --border: rgba(15,23,42,0.08);
-            --primary: #3b82f6;
-            --primary-600: #2563eb;
-            --primary-200: #bfdbfe;
-            --danger: #ef4444;
-            --danger-600: #dc2626;
-            --warning: #f59e0b;
-            --warning-600: #d97706;
-            --success: #10b981;
-            --radius: 16px;
-            --shadow-md: 0 8px 25px rgba(2,6,23,0.12);
-            --shadow-lg: 0 18px 40px rgba(2,6,23,0.18);
-            --glass-blur: saturate(180%) blur(12px);
-        }
+        /* Dark mode base styles */
         .dark {
-            /* Muted dark: dark slate surfaces, softer contrast, high readability */
-            --bg: #0f172a;             /* slate-900 */
-            --text: #e5e7eb;           /* gray-200 */
-            --card: rgba(30,41,59,0.85); /* slate-800 with opacity for glass over dark */
-            --border: rgba(148,163,184,0.18); /* slate-300 alpha */
-            --primary: #7dd3fc;        /* sky-300 accent for dark */
-            --primary-600: #38bdf8;    /* sky-400 */
-            --primary-200: #bae6fd;    /* sky-200 for focus ring */
-            --danger: #f87171;         /* red-400 */
-            --danger-600: #ef4444;     /* red-500 */
-            --warning: #fbbf24;        /* amber-400 */
-            --warning-600: #f59e0b;    /* amber-500 */
-            --success: #34d399;        /* emerald-400 */
-            --shadow-md: 0 8px 24px rgba(0,0,0,0.5);
-            --shadow-lg: 0 18px 42px rgba(0,0,0,0.6);
+            background-color: #1f2937;
+            color: #f3f4f6;
         }
-        html, body { background: var(--bg); color: var(--text); }
-
-        /* Frosted gradient nav */
-        .frosted-nav {
-            /* Softer gradient in light; muted slate glass in dark */
-            background: linear-gradient(135deg, rgba(91,142,255,0.85) 0%, rgba(123,92,255,0.85) 50%, rgba(168,85,247,0.85) 100%);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
-            box-shadow: var(--shadow-md);
-            border-bottom: 1px solid var(--border);
+        
+        .dark body {
+            background-color: #1f2937;
         }
-        .dark .frosted-nav {
-            background: linear-gradient(135deg, rgba(15,23,42,0.85) 0%, rgba(30,41,59,0.85) 50%, rgba(15,23,42,0.85) 100%);
-        }
-
-        /* Keep legacy helper if referenced elsewhere */
+        
         .domino-bg {
-            background: linear-gradient(135deg, #5b8eff 0%, #7b5cff 50%, #a855f7 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-
-        /* Glass cards */
+        
         .domino-card {
-            background: var(--card);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
-            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.2s ease, background-color 0.2s ease;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
-        .domino-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-            border-color: rgba(59,130,246,0.25);
-        }
+        
         .dark .domino-card {
-            background: var(--card);
+            background: #374151;
+            color: #f3f4f6;
         }
-
-        /* Score buttons */
+        
+        .dark .bg-gray-50 {
+            background-color: #4b5563;
+        }
+        
+        .dark .bg-gray-100 {
+            background-color: #1f2937;
+        }
+        
+        .dark .bg-gray-200 {
+            background-color: #4b5563;
+        }
+        
+        .dark .text-gray-500 {
+            color: #9ca3af;
+        }
+        
+        .dark .text-gray-600 {
+            color: #d1d5db;
+        }
+        
+        .dark .text-gray-700 {
+            color: #e5e7eb;
+        }
+        
+        .dark .border {
+            border-color: #4b5563;
+        }
+        
+        .dark .border-gray-600 {
+            border-color: #4b5563;
+        }
+        
+        /* Dark mode input styles */
+        .dark input,
+        .dark select {
+            background-color: #4b5563;
+            color: #f3f4f6;
+            border-color: #6b7280;
+        }
+        
+        .dark input::placeholder {
+            color: #9ca3af;
+        }
+        
+        .dark option {
+            background-color: #4b5563;
+            color: #f3f4f6;
+        }
+        
         .score-btn {
-            transition: transform 0.15s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.2s ease;
             border: 2px solid transparent;
-            border-radius: 12px;
-            box-shadow: 0 2px 6px rgba(2,6,23,0.08);
         }
+        
         .score-btn:hover:not(:disabled) {
-            transform: translateY(-1px);
-            border-color: var(--primary-200);
-            box-shadow: 0 6px 18px rgba(2,6,23,0.15);
+            transform: scale(1.05);
+            border-color: #3B82F6;
         }
-        .score-btn:disabled { opacity: 0.55; cursor: not-allowed; filter: grayscale(0.3); }
-
-        /* Inputs/selects */
-        .input, .select {
-            background-color: rgba(148,163,184,0.12);
-            color: var(--text);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+        
+        .score-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
-        .input:focus, .select:focus {
-            outline: none;
-            border-color: var(--primary-200);
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.25);
-            background-color: rgba(148,163,184,0.18);
-        }
-        .custom-score-input { width: 110px; text-align: center; font-weight: 700; }
-        .custom-score-input::-webkit-inner-spin-button,
-        .custom-score-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        .custom-score-input { -moz-appearance: textfield; }
-
-        /* Progress bars */
-        .progress-outer { background-color: rgba(148,163,184,0.15); border-radius: 9999px; height: 14px; overflow: hidden; }
-        .dark .progress-outer { background-color: rgba(148,163,184,0.12); }
-        .progress-inner-blue { background: linear-gradient(90deg, #60a5fa, #3b82f6 60%, #2563eb); height: 100%; transition: width 0.35s ease; }
-        .progress-inner-red { background: linear-gradient(90deg, #fca5a5, #ef4444 60%, #dc2626); height: 100%; transition: width 0.35s ease; }
-
-        /* Badges */
+        
         .petaroll-badge {
-            background: linear-gradient(45deg, #ffd54f, #ffb300);
-            color: #111827;
-            padding: 2px 10px;
-            border-radius: 9999px;
-            font-size: 11px;
-            font-weight: 800;
-            margin-left: 4px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        }
-        .petarolled-badge {
-            background: linear-gradient(45deg, #ef4444, #991b1b);
-            color: white;
-            padding: 2px 10px;
-            border-radius: 9999px;
-            font-size: 11px;
-            font-weight: 700;
-            margin-left: 4px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.18);
-        }
-        .achievement-badge {
-            background: linear-gradient(45deg, #34D399, #10B981);
-            color: #032b1f;
-            padding: 4px 10px;
-            border-radius: 9999px;
-            font-size: 12px;
-            font-weight: 800;
-            display: inline-block;
-            margin-right: 6px;
-            margin-bottom: 6px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        }
-
-        /* Pulse/animations */
-        .petaroll-alert { 
-            animation: pulse 2s infinite; 
-            background: rgba(251, 146, 60, 0.14) !important; 
-            border: 1px solid rgba(251, 146, 60, 0.35) !important; 
-            color: #fb923c !important;
-        }
-        .dark .petaroll-alert {
-            background: rgba(251, 146, 60, 0.12) !important;
-            border-color: rgba(251,146,60,0.28) !important;
-            color: #fdba74 !important; /* amber-300 */
-        }
-        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.75;transform:scale(.995)} }
-        .animate-pulse { animation: pulse 1s cubic-bezier(.4,0,.6,1) infinite; }
-
-        /* Hover reveal */
-        .game-item:hover .delete-game-btn,
-        .game-item:hover .edit-game-btn { opacity: 1; }
-        .delete-game-btn, .edit-game-btn { opacity: 0; transition: opacity 0.2s ease; }
-
-        /* Nav active states */
-        .nav-btn.active { background-color: rgba(255,255,255,0.35); color: var(--primary); border-radius: 10px; }
-        .mobile-nav-btn.active { color: var(--primary); background-color: rgba(148,163,184,0.2); border-radius: 12px; }
-        .dark .mobile-nav-btn.active { color: #93c5fd; background-color: rgba(30,41,59,0.6); }
-
-        /* Toast */
-        #achievementToast {
-            position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
-            background-color: var(--success); color: white; padding: 0.5rem 1rem; border-radius: 9999px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.25); z-index: 100;
-        }
-
-        /* Modals */
-        .modal-overlay { background: rgba(2,6,23,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
-        .modal-card {
-            background: var(--card); border-radius: calc(var(--radius) + 4px); box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-            transform: translateY(6px) scale(0.98); opacity: 0; animation: modalIn 220ms ease forwards;
-        }
-        @keyframes modalIn { to { transform: translateY(0) scale(1); opacity: 1; } }
-
-        /* Dark-mode normalization helpers to eliminate white patches */
-        .dark .bg-white { background-color: rgba(30,41,59,0.85) !important; }
-        .dark .bg-gray-50, .dark .bg-gray-100 { background-color: rgba(30,41,59,0.85) !important; }
-        .dark .border-gray-200, .dark .border-gray-300 { border-color: rgba(148,163,184,0.18) !important; }
-        .dark .text-gray-600 { color: #d1d5db !important; }
-        .dark .text-gray-500 { color: #9ca3af !important; }
-
-        /* Reusable themed small surface for rows */
-        .row-surface {
-            background: rgba(148,163,184,0.10);
-            border: 1px solid var(--border);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #000;
+            padding: 2px 8px;
             border-radius: 12px;
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 4px;
+        }
+        
+        .petarolled-badge {
+            background: linear-gradient(45deg, #DC2626, #991B1B);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 4px;
+        }
+        
+        .petaroll-alert {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        .animate-pulse {
+            animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .game-item:hover .delete-game-btn {
+            opacity: 1;
         }
 
-        /* Inline warning theme class */
-        .theme-warning { background: rgba(245, 158, 11, 0.12); border: 1px dashed rgba(245, 158, 11, 0.35); }
-        .dark .theme-warning { background: rgba(245, 158, 11, 0.10); border-color: rgba(245, 158, 11, 0.28); }
+        .delete-game-btn {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
 
-        /* Theme toggle button tweak for dark to avoid bright white */
-        .dark #themeToggle { background-color: rgba(148,163,184,0.18) !important; }
-        .dark #themeToggle:hover { background-color: rgba(148,163,184,0.28) !important; }
+        .game-item:hover .edit-game-btn {
+            opacity: 1;
+        }
+
+        .edit-game-btn {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .game-mode-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .game-mode-btn.active {
+            background-color: #3B82F6;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Style for active desktop nav button */
+        .nav-btn.active {
+            background-color: rgba(255, 255, 255, 0.3);
+            color: #3B82F6;
+        }
+
+        /* Style for active mobile nav button */
+        .mobile-nav-btn.active {
+            color: #3B82F6;
+            background-color: #e5e7eb; /* Light gray background */
+            border-radius: 8px;
+        }
+
+        .dark .mobile-nav-btn.active {
+            color: #60a5fa; /* Lighter blue for dark mode */
+            background-color: #374151; /* Contrasting dark gray */
+        }
+        
+        /* Custom score input styles */
+        .custom-score-input {
+            width: 100px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        /* Style for the add/subtract buttons */
+        .custom-score-input::-webkit-inner-spin-button,
+        .custom-score-input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        .custom-score-input {
+            -moz-appearance: textfield;
+        }
+
+        #achievementToast, #toast {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #10B981;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+        
+        /* Custom Scrollbar for Achievements */
+        #achievementsList::-webkit-scrollbar {
+          width: 6px;
+        }
+        #achievementsList::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        #achievementsList::-webkit-scrollbar-thumb {
+          background-color: #a0aec0;
+          border-radius: 20px;
+        }
+        .dark #achievementsList::-webkit-scrollbar-thumb {
+          background-color: #4a5568;
+        }
     </style>
 </head>
-<body class="transition-colors duration-300">
+<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
     <!-- Navigation -->
-    <nav class="frosted-nav text-white p-4 sticky top-0 z-50">
+    <nav class="domino-bg text-white p-4 sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <i class="fas fa-dice-six text-2xl"></i>
@@ -266,7 +272,7 @@
     </nav>
 
     <!-- Mobile Navigation -->
-    <div class="md:hidden border-t fixed bottom-0 left-0 right-0 z-50" style="background: var(--card); border-color: var(--border); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);">
+    <div class="md:hidden bg-white dark:bg-gray-800 border-t dark:border-gray-700 fixed bottom-0 left-0 right-0 z-50">
         <div class="flex justify-around py-2">
             <button onclick="showSection('home')" data-section="home" class="mobile-nav-btn flex flex-col items-center p-2 text-gray-600 dark:text-gray-100">
                 <i class="fas fa-home text-lg"></i>
@@ -324,9 +330,9 @@
                             <i class="fas fa-user-plus mr-2"></i>Add Player
                         </button>
                     </div>
-                    <div class="mt-4 p-3 rounded-lg theme-warning">
-                        <p class="text-sm font-medium" style="color: var(--warning-600);">
-                            <i class="fas fa-star mr-1"></i>PETAROLL: 75-0 or 150-<75 = 2 wins!
+                    <div class="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900 rounded-lg">
+                        <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                            <i class="fas fa-star mr-1"></i>PETAROLL: 75-0 or 150-&lt;75 = 2 wins!
                         </p>
                     </div>
                 </div>
@@ -348,7 +354,7 @@
                         <i class="fas fa-award mr-2 text-green-500"></i>
                         Achievements
                     </h3>
-                    <div id="achievementsList" class="space-y-1 text-sm">
+                    <div id="achievementsList" class="space-y-3 text-sm max-h-60 overflow-y-auto pr-2">
                         <!-- Dynamic content -->
                     </div>
                 </div>
@@ -397,34 +403,34 @@
                                 <h3 class="text-lg font-semibold text-center">Team 1</h3>
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Select Team or Player 1</label>
-                                    <select id="gameTeam1Selection" class="w-full p-3 select" onchange="handleTeamSelection('team1', this.value)">
+                                    <select id="gameTeam1Selection" class="w-full p-3 border rounded-lg" onchange="handleTeamSelection('team1', this.value)">
                                         <option value="">Select team or player</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Player 1</label>
-                                    <input type="text" id="gameTeam1Player1Input" class="w-full p-3 input" placeholder="Player 1 name">
+                                    <select id="gameTeam1Player1Input" class="w-full p-3 border rounded-lg"></select>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Player 2</label>
-                                    <input type="text" id="gameTeam1Player2Input" class="w-full p-3 input" placeholder="Player 2 name">
+                                    <select id="gameTeam1Player2Input" class="w-full p-3 border rounded-lg"></select>
                                 </div>
                             </div>
                             <div class="space-y-4">
                                 <h3 class="text-lg font-semibold text-center">Team 2</h3>
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Select Team or Player 1</label>
-                                    <select id="gameTeam2Selection" class="w-full p-3 select" onchange="handleTeamSelection('team2', this.value)">
+                                    <select id="gameTeam2Selection" class="w-full p-3 border rounded-lg" onchange="handleTeamSelection('team2', this.value)">
                                         <option value="">Select team or player</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Player 1</label>
-                                    <input type="text" id="gameTeam2Player1Input" class="w-full p-3 input" placeholder="Player 1 name">
+                                    <select id="gameTeam2Player1Input" class="w-full p-3 border rounded-lg"></select>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Player 2</label>
-                                    <input type="text" id="gameTeam2Player2Input" class="w-full p-3 input" placeholder="Player 2 name">
+                                    <select id="gameTeam2Player2Input" class="w-full p-3 border rounded-lg"></select>
                                 </div>
                             </div>
                         </div>
@@ -435,13 +441,13 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-medium mb-2">Player 1 Name</label>
-                                <select id="player1Select" class="w-full p-3 select">
+                                <select id="player1Select" class="w-full p-3 border rounded-lg">
                                     <option value="">Select player</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium mb-2">Player 2 Name</label>
-                                <select id="player2Select" class="w-full p-3 select">
+                                <select id="player2Select" class="w-full p-3 border rounded-lg">
                                     <option value="">Select player</option>
                                 </select>
                             </div>
@@ -451,7 +457,7 @@
                     <!-- Best Of Selection -->
                     <div class="mt-4">
                         <label class="block text-sm font-medium mb-2">Match Length</label>
-                        <select id="bestOfSelect" class="w-full p-3 select">
+                        <select id="bestOfSelect" class="w-full p-3 border rounded-lg">
                             <option value="1">Single Game</option>
                             <option value="3">Best of 3</option>
                             <option value="5">Best of 5</option>
@@ -466,8 +472,8 @@
                 <!-- Live Game Interface -->
                 <div id="liveGame" class="hidden">
                     <!-- PETAROLL Alert -->
-                    <div id="petarollAlert" class="hidden mb-4 p-4 rounded-lg text-center petaroll-alert">
-                        <p class="text-lg font-bold">
+                    <div id="petarollAlert" class="hidden mb-4 p-4 bg-orange-100 dark:bg-orange-900 rounded-lg text-center">
+                        <p class="text-lg font-bold text-orange-800 dark:text-orange-200">
                             <i class="fas fa-fire mr-2"></i>PETAROLL ALERT! Game will end at 75-0!<i class="fas fa-fire ml-2"></i>
                         </p>
                     </div>
@@ -481,8 +487,8 @@
                             <div class="text-center">
                                 <div id="team1Players" class="text-xl font-bold mb-4"></div>
                                 <div class="text-6xl font-bold mb-4" id="team1Score">0</div>
-                                <div class="w-full progress-outer mb-4">
-                                    <div id="team1Progress" class="progress-inner-blue" style="width: 0%"></div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mb-4">
+                                    <div id="team1Progress" class="bg-blue-500 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
                                 </div>
                                 <div class="grid grid-cols-4 gap-2 mb-4">
                                     <button onclick="addScore(1, 5)" class="score-btn bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-bold">+5</button>
@@ -514,8 +520,8 @@
                             <div class="text-center">
                                 <div id="team2Players" class="text-xl font-bold mb-4"></div>
                                 <div class="text-6xl font-bold mb-4" id="team2Score">0</div>
-                                <div class="w-full progress-outer mb-4">
-                                    <div id="team2Progress" class="progress-inner-red" style="width: 0%"></div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mb-4">
+                                    <div id="team2Progress" class="bg-red-500 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
                                 </div>
                                 <div class="grid grid-cols-4 gap-2 mb-4">
                                     <button onclick="addScore(2, 5)" class="score-btn bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-bold">+5</button>
@@ -573,7 +579,7 @@
                     <div class="domino-card p-6 mt-6 text-center">
                         <div class="mb-4">
                             <label class="block text-sm font-medium mb-2">Turn Time Limit (seconds, max 60)</label>
-                            <input type="number" id="turnTimeInput" class="w-24 p-2 input" min="5" max="60" value="60">
+                            <input type="number" id="turnTimeInput" class="w-24 p-2 border rounded-lg" min="5" max="60" value="60">
                         </div>
                         <div class="mb-4 text-3xl font-bold" id="turnTimerDisplay">--</div>
                         <div class="flex justify-center space-x-4">
@@ -610,7 +616,7 @@
                 <h3 class="text-xl font-bold mb-4">Add New Player</h3>
                 <div>
                     <label class="block text-sm font-medium mb-2">Player Name</label>
-                    <input type="text" id="newPlayerName" class="w-full p-3 input" placeholder="Enter player name">
+                    <input type="text" id="newPlayerName" class="w-full p-3 border rounded-lg" placeholder="Enter player name">
                 </div>
                 <div class="flex space-x-4 mt-6">
                     <button onclick="createPlayer()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded-lg font-medium">
@@ -642,11 +648,11 @@
                 <div class="grid grid-cols-1 gap-4">
                     <div>
                         <label class="block text-sm font-medium mb-2">Player 1 Name</label>
-                        <input type="text" id="teamPlayer1Input" class="w-full p-3 input" placeholder="Enter player 1 name">
+                        <input type="text" id="teamPlayer1Input" class="w-full p-3 border rounded-lg" placeholder="Enter player 1 name">
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-2">Player 2 Name</label>
-                        <input type="text" id="teamPlayer2Input" class="w-full p-3 input" placeholder="Enter player 2 name">
+                        <input type="text" id="teamPlayer2Input" class="w-full p-3 border rounded-lg" placeholder="Enter player 2 name">
                     </div>
                 </div>
                 <div class="flex space-x-4 mt-6">
@@ -767,7 +773,7 @@
                         <i class="fas fa-chart-line mr-2 text-purple-500"></i>
                         Streaks & Slumps
                     </h3>
-                    <div id="streaks-slumps-list"></div>
+                    <div id="streaks-slumps-list" class="space-y-4"></div>
                 </div>
 
                 <!-- PETAROLL Leaders -->
@@ -776,7 +782,7 @@
                         <i class="fas fa-fire-alt mr-2 text-orange-500"></i>
                         PETAROLL Leaders
                     </h3>
-                    <div id="petaroll-leaders-list"></div>
+                    <div id="petaroll-leaders-list" class="space-y-4"></div>
                 </div>
             </div>
         </div>
@@ -818,19 +824,52 @@
             </div>
         </div>
     </div>
+    
+    <!-- Generic Confirmation Modal -->
+    <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="domino-card p-8 m-4 max-w-md w-full text-center">
+            <div id="confirmModalIcon" class="text-6xl mb-4 text-red-500">⚠️</div>
+            <h2 id="confirmModalTitle" class="text-2xl font-bold mb-4">Are you sure?</h2>
+            <p id="confirmModalMessage" class="text-lg mb-6">This action cannot be undone.</p>
+            <div class="flex space-x-4 justify-center">
+                <button id="confirmModalConfirmBtn" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium">
+                    Confirm
+                </button>
+                <button onclick="closeConfirmModal()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-medium">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Toast Notification -->
+    <div id="toast" class="hidden fixed bottom-4 right-4 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg">
+        <p id="toastMessage"></p>
+    </div>
+
 
     <!-- Export Modal -->
     <div id="exportModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="domino-card p-8 m-4 max-w-md w-full text-center">
-            <div class="text-6xl mb-4">💾</div>
-            <h2 class="text-2xl font-bold mb-4">Export Data</h2>
-            <p class="text-lg mb-6">Download a backup of all your players, teams and game data.</p>
-            <div class="flex space-x-4 justify-center">
-                <button onclick="exportData()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg font-medium">
-                    <i class="fas fa-download mr-2"></i>Download Backup
+        <div class="domino-card p-8 m-4 max-w-lg w-full">
+            <h2 class="text-2xl font-bold mb-4 text-center">Export Data</h2>
+            <p class="text-center mb-6">Choose a format to download your data.</p>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="exportDataAs('pdf')" class="bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center">
+                    <i class="fas fa-file-pdf mr-2"></i>Export as PDF
                 </button>
-                <button onclick="closeExportModal()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-medium">
-                    <i class="fas fa-times mr-2"></i>Cancel
+                <button onclick="exportDataAs('csv')" class="bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center">
+                    <i class="fas fa-file-csv mr-2"></i>Export as CSV
+                </button>
+                <button onclick="exportDataAs('txt')" class="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center">
+                    <i class="fas fa-file-alt mr-2"></i>Export as TXT
+                </button>
+                <button onclick="exportData()" class="bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center">
+                    <i class="fas fa-file-code mr-2"></i>Export as JSON
+                </button>
+            </div>
+            <div class="text-center mt-6">
+                <button onclick="closeExportModal()" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 px-6 rounded-lg font-medium">
+                    Cancel
                 </button>
             </div>
         </div>
@@ -873,18 +912,66 @@
         let turnTimer = null;
         let remainingTime = 0;
         let editingGameId = null;
+        
         let achievements = JSON.parse(localStorage.getItem('dominoAchievements')) || {};
-const achievementDefinitions = {
-            tenWins: '🏅 Ten Wins',
-            anyPetaroll: '🔥 Any PETAROLL',
-            hatTrick: '🎩 Hat Trick (3 straight wins)',
-            comeback: '🚀 Comeback Win (trailed by 75+)',
-            closeCall: '🧊 Close Call (≤5 margin)',
-            cleanSheet: '🧼 Clean Sheet (opponent 0)'
+        let streaks = JSON.parse(localStorage.getItem('dominoStreaks')) || {};
+        const achievementDefinitions = {
+            tenWins: { text: 'Ten Wins Club', icon: '🏅', description: 'Win 10 games' },
+            anyPetaroll: { text: 'First PETAROLL', icon: '🔥', description: 'Achieve your first PETAROLL' },
+            comebackKing: { text: 'Comeback King', icon: '👑', description: 'Win after being down by 50+ points' },
+            dominator: { text: 'Dominator', icon: '🏆', description: 'Win 5 games in a row' }
         };
+        
         let pendingWinType = null;
         let recognition;
         let isMicOn = false;
+
+        // Sound Effects using Web Audio API
+        let audioCtx;
+        function initAudio() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.error("Web Audio API is not supported in this browser");
+            }
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.01);
+
+
+            switch(type) {
+                case 'addScore':
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(660, audioCtx.currentTime); // E5
+                    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.2);
+                    break;
+                case 'win':
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    oscillator.frequency.linearRampToValueAtTime(1046.50, audioCtx.currentTime + 0.4); // C6
+                    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+                    break;
+                case 'petaroll':
+                     oscillator.type = 'sawtooth';
+                    oscillator.frequency.setValueAtTime(783.99, audioCtx.currentTime); // G5
+                    oscillator.frequency.linearRampToValueAtTime(1046.50, audioCtx.currentTime + 0.2); // C6
+                    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.6);
+                    break;
+            }
+
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 1);
+        }
+
 
         // Theme management
         function initTheme() {
@@ -927,8 +1014,10 @@ const achievementDefinitions = {
                 players: players,
                 teams: teams,
                 games: games,
+                achievements: achievements,
+                streaks: streaks,
                 exportDate: new Date().toISOString(),
-                version: '1.1'
+                version: '1.2'
             };
             
             const dataStr = JSON.stringify(data, null, 2);
@@ -944,6 +1033,61 @@ const achievementDefinitions = {
             closeExportModal();
         }
 
+        function exportDataAs(format) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            let dataString = '';
+            let fileExtension = '';
+
+            const header = `Domino Tracker Data Export - ${new Date().toLocaleString()}\n\n`;
+
+            // Players Data
+            dataString += 'Players\n';
+            dataString += 'ID,Name\n';
+            players.forEach(p => {
+                dataString += `${p.id},${p.name}\n`;
+            });
+
+            // Teams Data
+            dataString += '\nTeams\n';
+            dataString += 'ID,Player 1,Player 2\n';
+            teams.forEach(t => {
+                dataString += `${t.id},${t.player1},${t.player2}\n`;
+            });
+
+            // Games Data
+            dataString += '\nGames\n';
+            dataString += 'ID,Date,Mode,Winner,Loser,Winner Score,Loser Score,Petaroll\n';
+            games.forEach(g => {
+                const winnerName = g.gameMode === 'team' ? teams.find(t => t.id === g.winner)?.player1 + ' & ' + teams.find(t => t.id === g.winner)?.player2 : g.winner;
+                const loserName = g.gameMode === 'team' ? teams.find(t => t.id === g.loser)?.player1 + ' & ' + teams.find(t => t.id === g.loser)?.player2 : g.loser;
+                dataString += `${g.id},${new Date(g.date).toLocaleString()},${g.gameMode},"${winnerName}","${loserName}",${g.winnerScore},${g.loserScore},${g.isPetaroll ? 'Yes' : 'No'}\n`;
+            });
+
+            if (format === 'pdf') {
+                doc.text(header, 10, 10);
+                doc.text(dataString, 10, 20);
+                doc.save('domino-tracker-data.pdf');
+            } else {
+                if (format === 'csv') {
+                    fileExtension = 'csv';
+                } else {
+                    fileExtension = 'txt';
+                }
+                const blob = new Blob([header + dataString], { type: `text/${fileExtension};charset=utf-8;` });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", `domino-tracker-data.${fileExtension}`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            closeExportModal();
+        }
+
+
         // Reset functionality
         function showResetModal() {
             document.getElementById('resetModal').classList.remove('hidden');
@@ -954,38 +1098,58 @@ const achievementDefinitions = {
         }
         
         function resetTodayData() {
-            if (!confirm("Are you sure you want to delete all games from today? This cannot be undone.")) return;
-            const today = new Date().toDateString();
-            games = games.filter(g => new Date(g.date).toDateString() !== today);
-            localStorage.setItem('dominoGames', JSON.stringify(games));
-            
-            closeResetModal();
-            refreshAllData();
-            alert("Today's games have been reset.");
+            showConfirmModal(
+                'Reset Today\'s Data',
+                'Are you sure you want to delete all games from today? This action cannot be undone.',
+                () => {
+                    const today = new Date().toDateString();
+                    games = games.filter(g => new Date(g.date).toDateString() !== today);
+                    localStorage.setItem('dominoGames', JSON.stringify(games));
+
+                    // Filter out achievements earned today
+                    for (const entityId in achievements) {
+                        achievements[entityId] = achievements[entityId].filter(ach => {
+                            return new Date(ach.date).toDateString() !== today;
+                        });
+                    }
+                    localStorage.setItem('dominoAchievements', JSON.stringify(achievements));
+                    
+                    closeResetModal();
+                    refreshAllData();
+                    showToast("Today's games and achievements have been reset.");
+                }
+            );
         }
 
 
         function resetAllData() {
-            if (!confirm("Are you absolutely sure you want to delete all data? This cannot be undone.")) return;
-            localStorage.removeItem('dominoPlayers');
-            localStorage.removeItem('dominoTeams');
-            localStorage.removeItem('dominoGames');
-            localStorage.removeItem('dominoAchievements');
-            
-            players = [];
-            teams = [];
-            games = [];
-            achievements = {};
-            currentGame = null;
-            
-            Object.values(chartInstances).forEach(chart => {
-                if (chart) chart.destroy();
-            });
-            chartInstances = {};
-            
-            closeResetModal();
-            showSection(currentSection);
-            alert('All data has been reset successfully!');
+            showConfirmModal(
+                'Reset Everything',
+                'Are you absolutely sure you want to delete all data? This action cannot be undone.',
+                () => {
+                    localStorage.removeItem('dominoPlayers');
+                    localStorage.removeItem('dominoTeams');
+                    localStorage.removeItem('dominoGames');
+                    localStorage.removeItem('dominoAchievements');
+                    localStorage.removeItem('dominoStreaks');
+                    
+                    players = [];
+                    teams = [];
+                    games = [];
+                    achievements = {};
+                    streaks = {};
+                    currentGame = null;
+                    
+                    Object.values(chartInstances).forEach(chart => {
+                        if (chart) chart.destroy();
+                    });
+                    chartInstances = {};
+                    
+                    closeResetModal();
+                    refreshAllData();
+                    showToast('All data has been reset successfully!');
+                }
+            );
         }
 
         // Navigation
@@ -1025,6 +1189,9 @@ const achievementDefinitions = {
             }
             if (currentSection === 'leaderboard') {
                 loadLeaderboard();
+            }
+            if (currentSection === 'home') {
+                loadAchievements();
             }
         }
         
@@ -1163,96 +1330,122 @@ const achievementDefinitions = {
             document.getElementById('recentGames').innerHTML = recentHtml || '<p class="text-gray-500 dark:text-gray-400 text-sm">No recent games</p>';
         }
 
+        function getShortName(entityName) {
+            if (entityName.includes(' & ')) {
+                const names = entityName.split(' & ');
+                return names.map(name => name.charAt(0)).join(' & ');
+            }
+            return entityName;
+        }
+
         function loadAchievements() {
             const listEl = document.getElementById('achievementsList');
-            const unlocked = Object.keys(achievements).filter(key => achievements[key]);
-            const html = unlocked.map(key => {
-                const value = achievements[key];
-                const winner = value && typeof value === 'object' ? ` - ${value.winner}` : '';
-                return `<span class="achievement-badge">${achievementDefinitions[key]}${winner}</span>`;
-            }).join('');
-            listEl.innerHTML = html || '<p class="text-gray-500 dark:text-gray-400">No achievements yet</p>';
-        }
-
-        function getWinnerName(game) {
-            if (!game) return 'Unknown';
-            if (game.gameMode === 'single') {
-                return game.winner;
-            } else {
-                const team = teams.find(t => t.id === game.winner);
-                return team ? `${team.player1} & ${team.player2}` : 'Unknown';
-            }
-        }
-
-function checkAchievements() {
-            const totalWins = games.reduce((sum, g) => sum + (g.gameValue || 1), 0);
-            let updated = false;
-            const lastGame = games[games.length - 1];
-
-            // Ten total wins across all recorded games
-            if (totalWins >= 10 && !achievements.tenWins) {
-                const winnerName = getWinnerName(lastGame);
-                achievements.tenWins = { winner: winnerName, at: lastGame?.date };
-                showAchievement('Achievement Unlocked: ' + achievementDefinitions.tenWins + ' - ' + winnerName);
-                updated = true;
-            }
-
-            // First PETAROLL
-            if (lastGame && lastGame.isPetaroll && !achievements.anyPetaroll) {
-                const winnerName = getWinnerName(lastGame);
-                achievements.anyPetaroll = { winner: winnerName, at: lastGame.date };
-                showAchievement('Achievement Unlocked: ' + achievementDefinitions.anyPetaroll + ' - ' + winnerName);
-                updated = true;
-            }
-
-            if (lastGame) {
-                // Clean Sheet: opponent 0
-                if (!achievements.cleanSheet && (lastGame.winnerScore > 0 && lastGame.loserScore === 0)) {
-                    const winnerName = getWinnerName(lastGame);
-                    achievements.cleanSheet = { winner: winnerName, at: lastGame.date };
-                    showAchievement('Achievement Unlocked: ' + achievementDefinitions.cleanSheet + ' - ' + winnerName);
-                    updated = true;
-                }
-
-                // Close Call: margin <= 5
-                const margin = Math.abs((lastGame.winnerScore || 0) - (lastGame.loserScore || 0));
-                if (!achievements.closeCall && margin > 0 && margin <= 5) {
-                    const winnerName = getWinnerName(lastGame);
-                    achievements.closeCall = { winner: winnerName, at: lastGame.date, margin };
-                    showAchievement('Achievement Unlocked: ' + achievementDefinitions.closeCall + ' - ' + winnerName);
-                    updated = true;
-                }
-
-                // Comeback: winner trailed by 75+ at some point during the game (requires history on currentGame when saved)
-                // We approximate using a flag stored on game.comeback if present
-                if (!achievements.comeback && lastGame.comeback) {
-                    const winnerName = getWinnerName(lastGame);
-                    achievements.comeback = { winner: winnerName, at: lastGame.date };
-                    showAchievement('Achievement Unlocked: ' + achievementDefinitions.comeback + ' - ' + winnerName);
-                    updated = true;
-                }
-
-                // Hat Trick: same entity wins 3 straight recorded games (respecting gameValue but counting as games)
-                if (!achievements.hatTrick) {
-                    const lastThree = games.slice(-3);
-                    if (lastThree.length === 3) {
-                        const w1 = lastThree[0], w2 = lastThree[1], w3 = lastThree[2];
-                        const id1 = w1.gameMode === 'single' ? w1.winner : w1.winner; // team id or player name
-                        const id2 = w2.gameMode === 'single' ? w2.winner : w2.winner;
-                        const id3 = w3.gameMode === 'single' ? w3.winner : w3.winner;
-                        if (id1 && id1 === id2 && id2 === id3) {
-                            const winnerName = getWinnerName(lastGame);
-                            achievements.hatTrick = { winner: winnerName, at: lastGame.date };
-                            showAchievement('Achievement Unlocked: ' + achievementDefinitions.hatTrick + ' - ' + winnerName);
-                            updated = true;
+            let html = '';
+            
+            const allEntities = [
+                ...players.map(p => ({ id: `player:${p.name}`, name: p.name })),
+                ...teams.map(t => ({ id: `team:${t.id}`, name: `${t.player1} & ${t.player2}` }))
+            ];
+            
+            const allUnlockedAchievements = {};
+            for (const entityId in achievements) {
+                if (achievements.hasOwnProperty(entityId)) {
+                    achievements[entityId].forEach(ach => {
+                        if (!allUnlockedAchievements[ach.key]) {
+                            allUnlockedAchievements[ach.key] = [];
                         }
-                    }
+                        allUnlockedAchievements[ach.key].push(getShortName(getEntityName(entityId)));
+                    });
                 }
             }
 
-            if (updated) {
+            for (const key in achievementDefinitions) {
+                const definition = achievementDefinitions[key];
+                const unlockedBy = allUnlockedAchievements[key];
+
+                if (unlockedBy) {
+                    html += `<button class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-medium flex items-center" title="${definition.description} - Unlocked by: ${unlockedBy.join(', ')}">
+                                <span class="w-8 text-center">${definition.icon}</span>
+                                <span>${definition.text} - ${unlockedBy.join(', ')}</span>
+                             </button>`;
+                } else {
+                    html += `
+                        <button class="w-full bg-blue-500 text-white py-3 px-4 rounded-lg font-medium opacity-70 cursor-not-allowed flex items-center" title="${definition.description} (Locked)">
+                            <span class="w-8 text-center"><i class="fas fa-lock"></i></span>
+                            <span>${definition.icon} ${definition.text}</span>
+                        </button>
+                    `;
+                }
+            }
+
+            listEl.innerHTML = html || '<p class="text-gray-500 dark:text-gray-400">No achievements defined.</p>';
+        }
+
+
+        function getEntityName(entityId) {
+            if (!entityId) return 'Unknown';
+            const [type, id] = entityId.split(':');
+            if (type === 'player') {
+                return id;
+            } else if (type === 'team') {
+                const team = teams.find(t => t.id === id);
+                return team ? `${team.player1} & ${team.player2}` : 'Unknown Team';
+            }
+            return 'Unknown';
+        }
+
+        function grantAchievement(entityId, achievementKey) {
+            if (!entityId || !achievementKey) return;
+
+            achievements[entityId] = achievements[entityId] || [];
+            
+            if (achievements[entityId].some(ach => typeof ach === 'string')) {
+                achievements[entityId] = achievements[entityId].map(ach => {
+                    if (typeof ach === 'string') {
+                        return { key: ach, date: new Date(0).toISOString() }; 
+                    }
+                    return ach;
+                });
+            }
+
+            const alreadyUnlocked = achievements[entityId].some(ach => ach.key === achievementKey);
+
+            if (!alreadyUnlocked) {
+                achievements[entityId].push({ key: achievementKey, date: new Date().toISOString() });
                 localStorage.setItem('dominoAchievements', JSON.stringify(achievements));
+                const entityName = getEntityName(entityId);
+                showAchievement(`Achievement Unlocked for ${entityName}: ${achievementDefinitions[achievementKey].text}`);
                 loadAchievements();
+            }
+        }
+        
+        function checkAllAchievements(gameRecord) {
+            const winnerId = gameRecord.gameMode === 'team' ? `team:${gameRecord.winner}` : `player:${gameRecord.winner}`;
+            const loserId = gameRecord.gameMode === 'team' ? `team:${gameRecord.loser}` : `player:${gameRecord.loser}`;
+
+            if (gameRecord.isPetaroll) {
+                grantAchievement(winnerId, 'anyPetaroll');
+            }
+
+            const winnerTotalWins = games.filter(g => {
+                if (g.gameMode === 'team' && winnerId.startsWith('team')) return g.winner === winnerId.split(':')[1];
+                if (g.gameMode === 'single' && winnerId.startsWith('player')) return g.winner === winnerId.split(':')[1];
+                return false;
+            }).reduce((sum, g) => sum + (g.gameValue || 1), 0);
+            if(winnerTotalWins >= 10) {
+                grantAchievement(winnerId, 'tenWins');
+            }
+
+            if(gameRecord.wasComeback) {
+                grantAchievement(winnerId, 'comebackKing');
+            }
+
+            streaks[winnerId] = (streaks[winnerId] || 0) + 1;
+            streaks[loserId] = 0; // Reset loser's streak
+            localStorage.setItem('dominoStreaks', JSON.stringify(streaks));
+            
+            if (streaks[winnerId] >= 5) {
+                grantAchievement(winnerId, 'dominator');
             }
         }
 
@@ -1260,7 +1453,7 @@ function checkAchievements() {
             const toast = document.getElementById('achievementToast');
             toast.textContent = message;
             toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 3000);
+            setTimeout(() => toast.classList.add('hidden'), 4000);
         }
 
         function loadHistory() {
@@ -1297,6 +1490,7 @@ function checkAchievements() {
                                 <div class="font-medium">
                                     ${gameTypeIcon}${winnerName} ${game.isPetaroll ? 'PETAROLLED' : 'beat'} ${loserName}
                                     ${game.isPetaroll ? `<span class="petaroll-badge">PETAROLL</span>` : ''}
+                                    ${game.wasComeback ? `<span class="achievement-badge">👑</span>` : ''}
                                 </div>
                                 <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                     Score: ${game.winnerScore} - ${game.loserScore} | Duration: ${duration}
@@ -1321,12 +1515,16 @@ function checkAchievements() {
         }
 
         function deleteGame(gameId) {
-            if (confirm('Are you sure you want to delete this game? This will affect all statistics.')) {
-                games = games.filter(g => g.id != gameId);
-                localStorage.setItem('dominoGames', JSON.stringify(games));
-                refreshAllData();
-                alert('Game deleted successfully!');
-            }
+            showConfirmModal(
+                'Delete Game',
+                'Are you sure you want to delete this game? This will affect all statistics.',
+                () => {
+                    games = games.filter(g => g.id != gameId);
+                    localStorage.setItem('dominoGames', JSON.stringify(games));
+                    refreshAllData();
+                    showToast('Game deleted successfully!');
+                }
+            );
         }
 
         function showEditGameModal(gameId) {
@@ -1509,6 +1707,12 @@ function checkAchievements() {
         }
 
         function populateSelectionDropdowns() {
+            const playerOptions = ['<option value="">Select player</option>'];
+            players.forEach(player => {
+                playerOptions.push(`<option value="${player.name}">${player.name}</option>`);
+            });
+            const playerOptionsHtml = playerOptions.join('');
+
             if (currentGameMode === 'team') {
                 // Team mode dropdowns should show both players and teams
                 const teamOptions = ['<option value="">Select team or player</option>'];
@@ -1526,17 +1730,17 @@ function checkAchievements() {
                 const optionsHtml = teamOptions.join('');
                 document.getElementById('gameTeam1Selection').innerHTML = optionsHtml;
                 document.getElementById('gameTeam2Selection').innerHTML = optionsHtml;
+
+                // Populate the new player select dropdowns
+                document.getElementById('gameTeam1Player1Input').innerHTML = playerOptionsHtml;
+                document.getElementById('gameTeam1Player2Input').innerHTML = playerOptionsHtml;
+                document.getElementById('gameTeam2Player1Input').innerHTML = playerOptionsHtml;
+                document.getElementById('gameTeam2Player2Input').innerHTML = playerOptionsHtml;
                 
             } else if (currentGameMode === 'single') {
-                // Single mode dropdowns should show only players
-                const playerOptions = ['<option value="">Select player</option>'];
-                players.forEach(player => {
-                    playerOptions.push(`<option value="${player.name}">${player.name}</option>`);
-                });
-                
-                const optionsHtml = playerOptions.join('');
-                document.getElementById('player1Select').innerHTML = optionsHtml;
-                document.getElementById('player2Select').innerHTML = optionsHtml;
+                // Single mode dropdowns show only players
+                document.getElementById('player1Select').innerHTML = playerOptionsHtml;
+                document.getElementById('player2Select').innerHTML = playerOptionsHtml;
             }
         }
 
@@ -1580,13 +1784,13 @@ function checkAchievements() {
 
                 const allPlayerNames = [t1p1, t1p2, t2p1, t2p2];
                 if (allPlayerNames.some(name => name === '')) {
-                    alert('Please enter all four player names.');
+                    showToast('Please enter all four player names.');
                     return;
                 }
 
                 const uniqueNames = new Set(allPlayerNames.map(n => n.toLowerCase()));
                 if (uniqueNames.size !== 4) {
-                    alert('Please enter four unique player names for the game.');
+                    showToast('Please enter four unique player names for the game.');
                     return;
                 }
 
@@ -1614,11 +1818,11 @@ function checkAchievements() {
                 const player2Name = document.getElementById('player2Select').value.trim();
                 
                 if (!player1Name || !player2Name) {
-                    alert('Please select both players');
+                    showToast('Please select both players');
                     return;
                 }
                  if (player1Name.toLowerCase() === player2Name.toLowerCase()) {
-                    alert('Players must be different.');
+                    showToast('Players must be different.');
                     return;
                 }
 
@@ -1705,14 +1909,14 @@ function checkAchievements() {
             const customScore = parseInt(customScoreInput.value);
             
             if (isNaN(customScore) || customScore === 0) {
-                alert('Please enter a valid score');
+                showToast('Please enter a valid score');
                 return;
             }
             
             if (customScore < 0) {
                 const currentScore = team === 1 ? currentGame.score1 : currentGame.score2;
                 if (currentScore + customScore < 0) {
-                    alert('Score cannot go below 0');
+                    showToast('Score cannot go below 0');
                     return;
                 }
             }
@@ -1733,7 +1937,7 @@ function checkAchievements() {
             
             const currentScore = team === 1 ? currentGame.score1 : currentGame.score2;
             if (currentScore - customScore < 0) {
-                alert('Score cannot go below 0');
+                showToast('Score cannot go below 0');
                 return;
             }
             
@@ -1741,12 +1945,9 @@ function checkAchievements() {
             customScoreInput.value = '';
         }
 
-function addScore(team, points) {
+        function addScore(team, points) {
             if (!currentGame || currentGame.ended) return;
-
-            const prev1 = currentGame.score1;
-            const prev2 = currentGame.score2;
-
+            
             if (team === 1) {
                 currentGame.score1 = Math.max(0, currentGame.score1 + points);
             } else {
@@ -1761,23 +1962,15 @@ function addScore(team, points) {
             } else {
                 teamName = team === 1 ? currentGame.player1 : currentGame.player2;
             }
-
-            // Track max lead for comeback detection
-            const newLead1 = currentGame.score1 - currentGame.score2;
-            const newLead2 = currentGame.score2 - currentGame.score1;
-            currentGame.maxLead1 = Math.max(currentGame.maxLead1 || 0, newLead1);
-            currentGame.maxLead2 = Math.max(currentGame.maxLead2 || 0, newLead2);
             
             currentGame.history.push({
                 team: teamName,
                 points: points,
                 team1Score: currentGame.score1,
                 team2Score: currentGame.score2,
-                prev1,
-                prev2,
-                at: Date.now()
             });
             
+            playSound('addScore');
             updateGameDisplay();
             
             const score1 = currentGame.score1;
@@ -1870,34 +2063,47 @@ function addScore(team, points) {
                 entry.team2Score = currentGame.score2;
             });
         }
+        
+        // NEW: Checks for comeback king achievement
+        function checkForComeback(winnerTeamNum) {
+            if (!currentGame) return false;
+            
+            for(const entry of currentGame.history) {
+                if(winnerTeamNum === 1) { // Team 1 won
+                    if (entry.team2Score - entry.team1Score >= 50) return true;
+                } else { // Team 2 won
+                    if (entry.team1Score - entry.team2Score >= 50) return true;
+                }
+            }
+            return false;
+        }
 
-function declarePetaroll() {
+        function declarePetaroll() {
             if (!currentGame) return;
             
             currentGame.ended = true;
             
-            let winner, loser, winnerScore, loserScore, winnerName, loserName;
+            let winner, loser, winnerScore, loserScore, winnerName, loserName, winnerTeamNum;
             
             if (currentGame.gameMode === 'team') {
-                winner = currentGame.score1 > currentGame.score2 ? currentGame.team1 : currentGame.team2;
-                loser = currentGame.score1 > currentGame.score2 ? currentGame.team2 : currentGame.team1;
+                winnerTeamNum = currentGame.score1 > currentGame.score2 ? 1 : 2;
+                winner = winnerTeamNum === 1 ? currentGame.team1 : currentGame.team2;
+                loser = winnerTeamNum === 1 ? currentGame.team2 : currentGame.team1;
                 winnerScore = Math.max(currentGame.score1, currentGame.score2);
                 loserScore = Math.min(currentGame.score1, currentGame.score2);
                 winnerName = `${winner.player1} & ${winner.player2}`;
                 loserName = `${loser.player1} & ${loser.player2}`;
             } else {
-                winner = currentGame.score1 > currentGame.score2 ? currentGame.player1 : currentGame.player2;
-                loser = currentGame.score1 > currentGame.score2 ? currentGame.player2 : currentGame.player1;
+                winnerTeamNum = currentGame.score1 > currentGame.score2 ? 1 : 2;
+                winner = winnerTeamNum === 1 ? currentGame.player1 : currentGame.player2;
+                loser = winnerTeamNum === 1 ? currentGame.player2 : currentGame.player1;
                 winnerScore = Math.max(currentGame.score1, currentGame.score2);
                 loserScore = Math.min(currentGame.score1, currentGame.score2);
                 winnerName = winner;
                 loserName = loser;
             }
 
-            // Comeback flag computation: if winner was trailing by 75+ at any point
-            const winnerIsTeam1 = (currentGame.gameMode === 'team' && winner === currentGame.team1) || (currentGame.gameMode === 'single' && winner === currentGame.player1);
-            const maxAgainstWinner = winnerIsTeam1 ? (currentGame.maxLead2 || 0) : (currentGame.maxLead1 || 0);
-            const comeback = maxAgainstWinner >= 75;
+            const wasComeback = checkForComeback(winnerTeamNum);
 
             const gameRecord = {
                 id: Date.now(),
@@ -1910,9 +2116,9 @@ function declarePetaroll() {
                 duration: new Date().getTime() - currentGame.startTime.getTime(),
                 isPetaroll: true,
                 gameValue: 2,
-                comeback
+                wasComeback: wasComeback
             };
-                
+            
             games.push(gameRecord);
             localStorage.setItem('dominoGames', JSON.stringify(games));
 
@@ -1935,33 +2141,33 @@ function declarePetaroll() {
                 </div>
             `;
             document.getElementById('winMessage').innerHTML = messageHtml;
+            playSound('petaroll');
 
             if (currentGame.score1 > currentGame.score2) matchWins1 += 2; else matchWins2 += 2;
-            handleMatchEnd(winnerName);
+            handleMatchEnd(winnerName, gameRecord);
         }
 
-function declareWinner() {
+        function declareWinner() {
             if (!currentGame) return;
             currentGame.ended = true;
 
-            let winner, loser, winnerScore, loserScore, winnerName;
+            let winner, loser, winnerScore, loserScore, winnerName, winnerTeamNum;
 
             if (currentGame.gameMode === 'team') {
-                winner = currentGame.score1 >= 150 ? currentGame.team1 : currentGame.team2;
-                loser = currentGame.score1 >= 150 ? currentGame.team2 : currentGame.team1;
+                winnerTeamNum = currentGame.score1 >= 150 ? 1 : 2;
+                winner = winnerTeamNum === 1 ? currentGame.team1 : currentGame.team2;
+                loser = winnerTeamNum === 1 ? currentGame.team2 : currentGame.team1;
                 winnerName = `${winner.player1} & ${winner.player2}`;
             } else {
-                winner = currentGame.score1 >= 150 ? currentGame.player1 : currentGame.player2;
-                loser = currentGame.score1 >= 150 ? currentGame.player2 : currentGame.player1;
+                winnerTeamNum = currentGame.score1 >= 150 ? 1 : 2;
+                winner = winnerTeamNum === 1 ? currentGame.player1 : currentGame.player2;
+                loser = winnerTeamNum === 1 ? currentGame.player2 : currentGame.player1;
                 winnerName = winner;
             }
             winnerScore = Math.max(currentGame.score1, currentGame.score2);
             loserScore = Math.min(currentGame.score1, currentGame.score2);
-
-            // Comeback flag computation: if winner was trailing by 75+ at any point
-            const winnerIsTeam1 = (currentGame.gameMode === 'team' && winner === currentGame.team1) || (currentGame.gameMode === 'single' && winner === currentGame.player1);
-            const maxAgainstWinner = winnerIsTeam1 ? (currentGame.maxLead2 || 0) : (currentGame.maxLead1 || 0);
-            const comeback = maxAgainstWinner >= 75;
+            
+            const wasComeback = checkForComeback(winnerTeamNum);
 
             const gameRecord = {
                 id: Date.now(),
@@ -1974,7 +2180,7 @@ function declareWinner() {
                 duration: new Date().getTime() - currentGame.startTime.getTime(),
                 isPetaroll: false,
                 gameValue: 1,
-                comeback
+                wasComeback: wasComeback
             };
             
             games.push(gameRecord);
@@ -1982,10 +2188,10 @@ function declareWinner() {
 
             if (currentGame.score1 > currentGame.score2) matchWins1++; else matchWins2++;
             document.getElementById('winMessage').innerHTML = `<strong>${winnerName}</strong> wins!<br>Final Score: ${winnerScore} - ${loserScore}`;
-            handleMatchEnd(winnerName);
+            handleMatchEnd(winnerName, gameRecord);
         }
 
-        function handleMatchEnd(winnerName) {
+        function handleMatchEnd(winnerName, gameRecord) {
             updateMatchScoreDisplay();
             const requiredWins = Math.ceil(bestOf / 2);
             let seriesInfo = `<div class="mt-2">Series Score: ${matchWins1} - ${matchWins2}</div>`;
@@ -1998,7 +2204,8 @@ function declareWinner() {
             }
             document.getElementById('winMessage').innerHTML += seriesInfo;
 
-            checkAchievements();
+            playSound('win');
+            checkAllAchievements(gameRecord);
             refreshAllData();
             document.getElementById('winModal').classList.remove('hidden');
             disableScoreButtons();
@@ -2087,7 +2294,7 @@ function declareWinner() {
                 
                 if (remainingTime <= 0) {
                     stopTurnTimer();
-                    alert('Time\'s up!');
+                    showToast("Time's up!");
                 }
             }, 1000);
             
@@ -2110,7 +2317,7 @@ function declareWinner() {
         }
 
         // Players Section
-function loadPlayers() {
+        function loadPlayers() {
             const playersHtml = players.map(player => {
                 const wins = games.filter(g => {
                     if (g.gameMode === 'single') return g.winner === player.name;
@@ -2124,8 +2331,6 @@ function loadPlayers() {
                     return team && (team.player1 === player.name || team.player2 === player.name);
                 }).reduce((sum, g) => sum + (g.gameValue || 1), 0);
 
-                // Compute current and longest streaks for this player across all time
-                const streakInfo = computeEntityStreak(`player:${player.name}`, games);
                 const totalGames = wins + losses;
                 const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(1) : 0;
                 
@@ -2151,10 +2356,6 @@ function loadPlayers() {
                                 <div class="text-sm text-gray-500 dark:text-gray-400">Win Rate</div>
                             </div>
                         </div>
-                        <div class="mt-3 text-center text-sm">
-                            <span class="px-2 py-1 rounded-full row-surface">Current Streak: ${streakInfo.type === 'win' ? 'W' : streakInfo.type === 'loss' ? 'L' : '-'}${streakInfo.current}</span>
-                            <span class="px-2 py-1 rounded-full row-surface ml-2">Longest: W${streakInfo.longestWin} / L${streakInfo.longestLoss}</span>
-                        </div>
                     </div>
                 `;
             }).join('');
@@ -2173,7 +2374,7 @@ function loadPlayers() {
         function createPlayer() {
             const playerName = document.getElementById('newPlayerName').value.trim();
             if (!playerName) {
-                alert('Please enter a player name');
+                showToast('Please enter a player name');
                 return;
             }
             
@@ -2196,29 +2397,32 @@ function loadPlayers() {
             const playerToDelete = players.find(p => p.id === playerId);
             if (!playerToDelete) return;
             
-            const isPlayerInTeam = teams.some(team => team.player1 === playerToDelete.name || team.player2 === playerToDelete.name);
-            if (isPlayerInTeam) {
-                if (!confirm('This player is part of a team. Deleting them will also delete those teams. Are you sure?')) {
-                    return;
-                }
-                teams = teams.filter(team => team.player1 !== playerToDelete.name && team.player2 !== playerToDelete.name);
-                localStorage.setItem('dominoTeams', JSON.stringify(teams));
-            }
+            showConfirmModal(
+                'Delete Player',
+                `Are you sure you want to delete ${playerToDelete.name}? This will also remove them from any teams.`,
+                () => {
+                    const isPlayerInTeam = teams.some(team => team.player1 === playerToDelete.name || team.player2 === playerToDelete.name);
+                    if (isPlayerInTeam) {
+                        teams = teams.filter(team => team.player1 !== playerToDelete.name && team.player2 !== playerToDelete.name);
+                        localStorage.setItem('dominoTeams', JSON.stringify(teams));
+                    }
 
-            players = players.filter(p => p.id !== playerId);
-            localStorage.setItem('dominoPlayers', JSON.stringify(players));
-            loadPlayers();
-            if (currentSection === 'teams') loadTeams();
+                    players = players.filter(p => p.id !== playerId);
+                    localStorage.setItem('dominoPlayers', JSON.stringify(players));
+                    loadPlayers();
+                    if (currentSection === 'teams') loadTeams();
+                    showToast(`${playerToDelete.name} has been deleted.`);
+                }
+            );
         }
 
         // Teams Section
-function loadTeams() {
+        function loadTeams() {
             const teamsHtml = teams.map(team => {
                 const wins = games.filter(g => g.winner === team.id).reduce((sum, g) => sum + (g.gameValue || 1), 0);
                 const losses = games.filter(g => g.loser === team.id).reduce((sum, g) => sum + (g.gameValue || 1), 0);
                 const petarolls = games.filter(g => g.winner === team.id && g.isPetaroll).length;
                 const gotPetarolled = games.filter(g => g.loser === team.id && g.isPetaroll).length;
-                const streakInfo = computeEntityStreak(`team:${team.id}`, games);
                 const totalGames = wins + losses;
                 const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(1) : 0;
                 
@@ -2248,10 +2452,6 @@ function loadTeams() {
                             ${petarolls > 0 ? `<span class="petaroll-badge">${petarolls} PETAROLLS</span>` : ''}
                             ${gotPetarolled > 0 ? `<span class="petarolled-badge">PETAROLLED ${gotPetarolled}x</span>` : ''}
                         </div>
-                        <div class="mt-3 text-center text-sm">
-                            <span class="px-2 py-1 rounded-full row-surface">Current Streak: ${streakInfo.type === 'win' ? 'W' : streakInfo.type === 'loss' ? 'L' : '-'}${streakInfo.current}</span>
-                            <span class="px-2 py-1 rounded-full row-surface ml-2">Longest: W${streakInfo.longestWin} / L${streakInfo.longestLoss}</span>
-                        </div>
                     </div>
                 `;
             }).join('');
@@ -2274,12 +2474,12 @@ function loadTeams() {
             const player2Name = document.getElementById('teamPlayer2Input').value.trim();
             
             if (!player1Name || !player2Name) {
-                alert('Please enter both player names');
+                showToast('Please enter both player names');
                 return;
             }
 
             if (player1Name.toLowerCase() === player2Name.toLowerCase()) {
-                alert('Please enter two different player names');
+                showToast('Please enter two different player names');
                 return;
             }
 
@@ -2314,11 +2514,16 @@ function loadTeams() {
         }
 
         function deleteTeam(teamId) {
-            if (confirm('Are you sure you want to delete this team? This will not delete the players.')) {
-                teams = teams.filter(t => t.id !== teamId);
-                localStorage.setItem('dominoTeams', JSON.stringify(teams));
-                loadTeams();
-            }
+            showConfirmModal(
+                'Delete Team',
+                'Are you sure you want to delete this team? This will not delete the players.',
+                () => {
+                    teams = teams.filter(t => t.id !== teamId);
+                    localStorage.setItem('dominoTeams', JSON.stringify(teams));
+                    loadTeams();
+                    showToast('Team deleted successfully.');
+                }
+            );
         }
 
         // Leaderboard section
@@ -2562,7 +2767,7 @@ function loadTeams() {
             const stats2 = getOverallStats(select2Val, period);
 
             const name1 = select1Val.startsWith('player:') ? select1Val.split(':')[1] : teams.find(t=>t.id===select1Val.split(':')[1]).player1 + ' & ' + teams.find(t=>t.id===select1Val.split(':')[1]).player2;
-            const name2 = select2Val.startsWith('player:') ? select2Val.split(':')[1] : teams.find(t=>t.id===select2Val.split(':')[1]).player1 + ' & ' + teams.find(t=>t.id===select2Val.split(':')[1]).player2;
+            const name2 = select2Val.startsWith('player:') ? select2Val.split(':')[1] : teams.find(t=>t.id===select1Val.split(':')[1]).player1 + ' & ' + teams.find(t=>t.id===select1Val.split(':')[1]).player2;
 
             resultsDiv.innerHTML = `
                 <div class="grid grid-cols-2 gap-4 text-center mt-2">
@@ -2586,7 +2791,7 @@ function loadTeams() {
 
         function loadStreaks(period) {
             const filteredGames = filterGamesByPeriod(games, period).sort((a,b) => new Date(a.date) - new Date(b.date));
-            const streaks = {}; // { id: { name, currentStreak, type } }
+            const currentStreaks = {};
 
             const allEntities = [
                 ...players.map(p => ({ id: `player:${p.name}`, name: p.name, type: 'player' })),
@@ -2594,50 +2799,48 @@ function loadTeams() {
             ];
 
             allEntities.forEach(e => {
-                streaks[e.id] = { name: e.name, currentStreak: 0, type: 'none' };
+                currentStreaks[e.id] = { name: e.name, currentStreak: 0, type: 'none' };
             });
 
             filteredGames.forEach(game => {
                 const winnerId = game.gameMode === 'single' ? `player:${game.winner}` : `team:${game.winner}`;
                 const loserId = game.gameMode === 'single' ? `player:${game.loser}` : `team:${game.loser}`;
                 
-                // Winner
-                if (streaks[winnerId]) {
-                    if (streaks[winnerId].type === 'win') {
-                        streaks[winnerId].currentStreak++;
+                if (currentStreaks[winnerId]) {
+                    if (currentStreaks[winnerId].type === 'win') {
+                        currentStreaks[winnerId].currentStreak++;
                     } else {
-                        streaks[winnerId].type = 'win';
-                        streaks[winnerId].currentStreak = 1;
+                        currentStreaks[winnerId].type = 'win';
+                        currentStreaks[winnerId].currentStreak = 1;
                     }
                 }
 
-                // Loser
-                 if (streaks[loserId]) {
-                    if (streaks[loserId].type === 'loss') {
-                        streaks[loserId].currentStreak++;
+                 if (currentStreaks[loserId]) {
+                    if (currentStreaks[loserId].type === 'loss') {
+                        currentStreaks[loserId].currentStreak++;
                     } else {
-                        streaks[loserId].type = 'loss';
-                        streaks[loserId].currentStreak = 1;
+                        currentStreaks[loserId].type = 'loss';
+                        currentStreaks[loserId].currentStreak = 1;
                     }
                 }
             });
 
-            const winningStreaks = Object.values(streaks).filter(s => s.type === 'win' && s.currentStreak > 1).sort((a,b) => b.currentStreak - a.currentStreak);
-            const losingStreaks = Object.values(streaks).filter(s => s.type === 'loss' && s.currentStreak > 1).sort((a,b) => b.currentStreak - a.currentStreak);
+            const winningStreaks = Object.values(currentStreaks).filter(s => s.type === 'win' && s.currentStreak > 1).sort((a,b) => b.currentStreak - a.currentStreak);
+            const losingStreaks = Object.values(currentStreaks).filter(s => s.type === 'loss' && s.currentStreak > 1).sort((a,b) => b.currentStreak - a.currentStreak);
 
-            let html = '<div><h4 class="font-bold text-green-500">Winning Streaks</h4>';
+            let html = '<div><h4 class="font-semibold text-green-500 dark:text-green-400">Winning Streaks</h4>';
             if(winningStreaks.length > 0) {
-                html += winningStreaks.slice(0,3).map(s => `<div class="text-sm">${s.name}: ${s.currentStreak} wins</div>`).join('');
+                html += winningStreaks.slice(0,3).map(s => `<div class="text-sm">${s.name}: <span class="font-semibold">${s.currentStreak} wins</span></div>`).join('');
             } else {
-                html += '<div class="text-sm text-gray-500">None</div>';
+                html += '<div class="text-sm text-gray-500 dark:text-gray-400">None</div>';
             }
             html += '</div>';
 
-            html += '<div class="mt-4"><h4 class="font-bold text-red-500">Losing Streaks</h4>';
+            html += '<div class="mt-4"><h4 class="font-semibold text-red-500 dark:text-red-400">Losing Streaks</h4>';
             if(losingStreaks.length > 0) {
-                html += losingStreaks.slice(0,3).map(s => `<div class="text-sm">${s.name}: ${s.currentStreak} losses</div>`).join('');
+                html += losingStreaks.slice(0,3).map(s => `<div class="text-sm">${s.name}: <span class="font-semibold">${s.currentStreak} losses</span></div>`).join('');
             } else {
-                 html += '<div class="text-sm text-gray-500">None</div>';
+                 html += '<div class="text-sm text-gray-500 dark:text-gray-400">None</div>';
             }
             html += '</div>';
             
@@ -2669,82 +2872,23 @@ function loadTeams() {
             const topPetarollers = Object.values(petarollers).filter(p => p.count > 0).sort((a,b) => b.count - a.count);
             const topPetarolled = Object.values(petarolled).filter(p => p.count > 0).sort((a,b) => b.count - a.count);
 
-            let html = '<div><h4 class="font-bold text-yellow-500">Most Petarolls Given</h4>';
+            let html = '<div><h4 class="font-semibold text-yellow-500 dark:text-yellow-400">Most Petarolls Given</h4>';
             if(topPetarollers.length > 0) {
-                html += topPetarollers.slice(0,3).map(p => `<div class="text-sm">${p.name}: ${p.count}</div>`).join('');
+                html += topPetarollers.slice(0,3).map(p => `<div class="text-sm">${p.name}: <span class="font-semibold">${p.count}</span></div>`).join('');
             } else {
-                html += '<div class="text-sm text-gray-500">None</div>';
+                html += '<div class="text-sm text-gray-500 dark:text-gray-400">None</div>';
             }
             html += '</div>';
 
-            html += '<div class="mt-4"><h4 class="font-bold text-red-700">Most Petarolled</h4>';
+            html += '<div class="mt-4"><h4 class="font-semibold text-red-500 dark:text-red-400">Most Petarolled</h4>';
              if(topPetarolled.length > 0) {
-                html += topPetarolled.slice(0,3).map(p => `<div class="text-sm">${p.name}: ${p.count}</div>`).join('');
+                html += topPetarolled.slice(0,3).map(p => `<div class="text-sm">${p.name}: <span class="font-semibold">${p.count}</span></div>`).join('');
             } else {
-                 html += '<div class="text-sm text-gray-500">None</div>';
+                 html += '<div class="text-sm text-gray-500 dark:text-gray-400">None</div>';
             }
             html += '</div>';
 
             document.getElementById('petaroll-leaders-list').innerHTML = html;
-        }
-
-function computeEntityStreak(entityId, allGames) {
-            // entityId: "player:Name" or "team:teamId"
-            const isPlayer = entityId.startsWith('player:');
-            const id = entityId.split(':')[1];
-
-            // sort by date ascending
-            const sorted = [...allGames].sort((a,b) => new Date(a.date) - new Date(b.date));
-            let currentType = 'none';
-            let currentCount = 0;
-            let longestWin = 0;
-            let longestLoss = 0;
-
-            const isWinner = (g) => {
-                if (isPlayer) {
-                    if (g.gameMode === 'single') return g.winner === id;
-                    const wt = teams.find(t => t.id === g.winner);
-                    return wt && (wt.player1 === id || wt.player2 === id);
-                } else {
-                    return g.gameMode === 'team' && g.winner === id;
-                }
-            };
-            const isLoser = (g) => {
-                if (isPlayer) {
-                    if (g.gameMode === 'single') return g.loser === id;
-                    const lt = teams.find(t => t.id === g.loser);
-                    return lt && (lt.player1 === id || lt.player2 === id);
-                } else {
-                    return g.gameMode === 'team' && g.loser === id;
-                }
-            };
-
-            sorted.forEach(g => {
-                if (isWinner(g)) {
-                    if (currentType === 'win') {
-                        currentCount++;
-                    } else {
-                        // finalize loss streak
-                        if (currentType === 'loss') longestLoss = Math.max(longestLoss, currentCount);
-                        currentType = 'win';
-                        currentCount = 1;
-                    }
-                } else if (isLoser(g)) {
-                    if (currentType === 'loss') {
-                        currentCount++;
-                    } else {
-                        if (currentType === 'win') longestWin = Math.max(longestWin, currentCount);
-                        currentType = 'loss';
-                        currentCount = 1;
-                    }
-                }
-            });
-
-            // finalize longest at end
-            if (currentType === 'win') longestWin = Math.max(longestWin, currentCount);
-            if (currentType === 'loss') longestLoss = Math.max(longestLoss, currentCount);
-
-            return { type: currentType, current: currentType === 'none' ? 0 : currentCount, longestWin, longestLoss };
         }
 
         function filterGamesByPeriod(games, period) {
@@ -2810,8 +2954,14 @@ function computeEntityStreak(entityId, allGames) {
             if (isMicOn) {
                 recognition.stop();
             } else {
-                if(currentGame) recognition.start();
-                else alert("Please start a game first.");
+                if(currentGame) {
+                    try {
+                        recognition.start();
+                    } catch(e) {
+                        console.error("Speech recognition error:", e);
+                    }
+                }
+                else showToast("Please start a game first.");
             }
         }
 
@@ -2847,10 +2997,43 @@ function computeEntityStreak(entityId, allGames) {
             }
         }
 
+        // NEW: Custom Modals and Toasts
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function showConfirmModal(title, message, onConfirm) {
+            document.getElementById('confirmModalTitle').textContent = title;
+            document.getElementById('confirmModalMessage').textContent = message;
+            const confirmBtn = document.getElementById('confirmModalConfirmBtn');
+            
+            // Clone and replace the button to remove old event listeners
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            
+            newConfirmBtn.addEventListener('click', () => {
+                onConfirm();
+                closeConfirmModal();
+            });
+            
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+        }
+
 
         // Initialize app
         function initApp() {
             initTheme();
+            initAudio(); // Initialize the audio context
             showSection('home');
             setupSpeechRecognition();
         }
