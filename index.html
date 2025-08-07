@@ -227,6 +227,10 @@
         .dark #achievementsList::-webkit-scrollbar-thumb {
           background-color: #4a5568;
         }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
@@ -247,6 +251,9 @@
                 <button id="themeToggle" class="p-2 rounded-lg bg-white bg-opacity-20 hover:bg-opacity-30 transition">
                     <i class="fas fa-moon" id="themeIcon"></i>
                 </button>
+                <button id="loginBtn" class="nav-btn px-3 py-1 rounded-lg">Login</button>
+                <button id="logoutBtn" class="nav-btn px-3 py-1 rounded-lg hidden">Logout</button>
+                <span id="userEmail" class="ml-2 text-sm"></span>
                 <div class="hidden md:flex space-x-2">
                     <button onclick="showSection('home')" data-section="home" class="nav-btn px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20">
                         <i class="fas fa-home mr-1"></i>Home
@@ -926,6 +933,35 @@
         let recognition;
         let isMicOn = false;
 
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+
+        function updateAuthUI() {
+            if (currentUser) {
+                document.getElementById('userEmail').textContent = currentUser.email;
+                document.getElementById('loginBtn').classList.add('hidden');
+                document.getElementById('logoutBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('userEmail').textContent = '';
+                document.getElementById('loginBtn').classList.remove('hidden');
+                document.getElementById('logoutBtn').classList.add('hidden');
+            }
+        }
+
+        function login() {
+            const email = prompt('Enter email:');
+            if (email) {
+                currentUser = { email };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                updateAuthUI();
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            updateAuthUI();
+        }
+
         // Sound Effects using Web Audio API
         let audioCtx;
         function initAudio() {
@@ -999,6 +1035,10 @@
             }
             refreshAllData();
         });
+
+        document.getElementById('loginBtn').addEventListener('click', login);
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        updateAuthUI();
 
         // Export functionality
         function showExportModal() {
