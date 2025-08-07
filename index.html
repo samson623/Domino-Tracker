@@ -896,6 +896,22 @@
     <div id="achievementToast" class="hidden"></div>
 
     <script>
+        async function login() {
+            const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
+            if (error) console.error("Login error", error.message);
+        }
+        async function logout() {
+            await supabase.auth.signOut();
+        }
+        supabase.auth.onAuthStateChange((_event, session) => {
+            const isLoggedIn = !!session;
+            document.getElementById("loginBtn").classList.toggle("hidden", isLoggedIn);
+            document.getElementById("logoutBtn").classList.toggle("hidden", !isLoggedIn);
+            document.getElementById("userEmail").textContent = isLoggedIn ? session.user.email : "";
+        });
+        document.getElementById("loginBtn").addEventListener("click", login);
+        document.getElementById("logoutBtn").addEventListener("click", logout);
+
         // Global variables
         let currentGame = null;
         let currentGameMode = null;
