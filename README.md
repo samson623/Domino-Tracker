@@ -24,3 +24,15 @@ Domino Tracker is a web-based scoreboard for recording domino matches. Open
 3. Create teams or enter player names and start a new game.
 
 Your game data stays in the browser, so there's no server setup required.
+
+## Supabase Authentication
+
+1. Create a project at [Supabase](https://supabase.com/).
+2. In your project dashboard, go to **Authentication → Providers** and enable the **Google** provider.
+3. From **Project Settings → API**, copy the `supabaseUrl` and `supabaseAnonKey` and place them in `supabase-config.js`.
+4. Open `index.html` in your browser to run the app.
+
+### Security considerations
+
+- Use only the public `supabaseAnonKey`; never expose service-role keys in the browser.
+- Ensure the redirect URL in Supabase matches the location where you serve `index.html`.
