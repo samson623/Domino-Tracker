@@ -8,9 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script
-                                                                                          
-                                                                                          >
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <style>
         /* Dark mode base styles */
         .dark {
@@ -79,7 +77,6 @@
         
         .dark input::placeholder {
             color: #9ca3af;
-
         }
         
         .dark option {
@@ -114,7 +111,6 @@
         
         .petarolled-badge {
             background: linear-gradient(45deg, #DC2626, #991B1B);
-         
             color: white;
             padding: 2px 8px;
             border-radius: 12px;
@@ -149,8 +145,7 @@
             transition: opacity 0.2s;
         }
 
-        .game
-        -item:hover .edit-game-btn {
+        .game-item:hover .edit-game-btn {
             opacity: 1;
         }
 
@@ -184,7 +179,6 @@
 
         .dark .mobile-nav-btn.active {
             color: #60a5fa; /* Lighter blue for dark mode */
-         
             background-color: #374151; /* Contrasting dark gray */
         }
         
@@ -3046,66 +3040,6 @@
 
         // Start the app
         initApp();
- <script>
-// HOTFIX: fail-open auth gate so app is usable on Vercel until OAuth is ready.
-(function(){
-  function hideOverlay(){
-    var o = document.getElementById('loginOverlay');
-    if (o) o.classList.add('hidden');          // remove the click blocker
-    window.__loginDisabled = true;             // tell UI that gate is disabled
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', hideOverlay);
-  } else {
-    hideOverlay();
-  }
-})();
-
-// Override overlay toggler to respect the hotfix flag
-window.updateLoginOverlay = function(forceHide){
-  var overlay = document.getElementById('loginOverlay');
-  if (!overlay) return;
-  if (forceHide || window.__loginDisabled) { overlay.classList.add('hidden'); return; }
-  var user = null;
-  try { user = JSON.parse(localStorage.getItem('dominoUser') || 'null'); } catch (_){}
-  if (user) overlay.classList.add('hidden'); else overlay.classList.remove('hidden');
-};
-
-// Wrap Google Identity init so it never blocks the app if not ready
-window.initializeGoogleSignIn = function(){
-  var hasGIS = !!(window.google && google.accounts && google.accounts.id);
-  var clientId = window.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID';
-  var hasClientId = clientId && clientId !== 'YOUR_GOOGLE_CLIENT_ID';
-
-  if (!hasGIS || !hasClientId) {
-    window.__loginDisabled = true;
-    window.updateLoginOverlay(true);           // keep app usable
-    return;
-  }
-
-  google.accounts.id.initialize({
-    client_id: clientId,
-    callback: handleCredentialResponse,
-    auto_select: false
-  });
-
-  var navBtn = document.getElementById('buttonDiv');
-  if (navBtn) google.accounts.id.renderButton(navBtn, { theme:'outline', size:'medium', width:200 });
-
-  var overlayBtn = document.getElementById('loginButtonContainer');
-  if (overlayBtn) google.accounts.id.renderButton(overlayBtn, { theme:'outline', size:'large', width:260 });
-};
-
-// Ensure overlay is hidden even if earlier code ran first
-window.updateLoginOverlay && window.updateLoginOverlay(true);
-</script>
-
-    
-
+    </script>
 </body>
-</hml>
-  
-
-  
-
-        
+</html>
