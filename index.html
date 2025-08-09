@@ -402,9 +402,9 @@
                             <div class="space-y-4">
                                 <h3 class="text-lg font-semibold text-center">Team 1</h3>
                                 <div>
-                                    <label class="block text-sm font-medium mb-2">Select Team or Player 1</label>
-                                    <select id="gameTeam1Selection" class="w-full p-3 border rounded-lg" onchange="handleTeamSelection('team1', this.value)">
-                                        <option value="">Select team or player</option>
+                                    <label class="block text-sm font-medium mb-2">Load Saved Team (Optional)</label>
+                                    <select id="gameTeam1SavedTeamSelect" class="w-full p-3 border rounded-lg" onchange="handleSavedTeamSelection('1', this.value)">
+                                        <!-- Options populated by JS -->
                                     </select>
                                 </div>
                                 <div>
@@ -419,9 +419,9 @@
                             <div class="space-y-4">
                                 <h3 class="text-lg font-semibold text-center">Team 2</h3>
                                 <div>
-                                    <label class="block text-sm font-medium mb-2">Select Team or Player 1</label>
-                                    <select id="gameTeam2Selection" class="w-full p-3 border rounded-lg" onchange="handleTeamSelection('team2', this.value)">
-                                        <option value="">Select team or player</option>
+                                    <label class="block text-sm font-medium mb-2">Load Saved Team (Optional)</label>
+                                    <select id="gameTeam2SavedTeamSelect" class="w-full p-3 border rounded-lg" onchange="handleSavedTeamSelection('2', this.value)">
+                                        <!-- Options populated by JS -->
                                     </select>
                                 </div>
                                 <div>
@@ -1367,7 +1367,7 @@
                     html += `<button class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-medium flex items-center" title="${definition.description} - Unlocked by: ${unlockedBy.join(', ')}">
                                 <span class="w-8 text-center">${definition.icon}</span>
                                 <span>${definition.text} - ${unlockedBy.join(', ')}</span>
-                             </button>`;
+                               </button>`;
                 } else {
                     html += `
                         <button class="w-full bg-blue-500 text-white py-3 px-4 rounded-lg font-medium opacity-70 cursor-not-allowed flex items-center" title="${definition.description} (Locked)">
@@ -1714,24 +1714,17 @@
             const playerOptionsHtml = playerOptions.join('');
 
             if (currentGameMode === 'team') {
-                // Team mode dropdowns should show both players and teams
-                const teamOptions = ['<option value="">Select team or player</option>'];
-                
-                // Add individual players
-                players.forEach(player => {
-                    teamOptions.push(`<option value="player:${player.name}">${player.name}</option>`);
-                });
-                
-                // Add teams
+                // Populate the new saved team dropdowns
+                const savedTeamOptions = ['<option value="">Load a saved team</option>'];
                 teams.forEach(team => {
-                    teamOptions.push(`<option value="team:${team.id}">${team.player1} & ${team.player2}</option>`);
+                    savedTeamOptions.push(`<option value="team:${team.id}">${team.player1} & ${team.player2}</option>`);
                 });
+                const savedTeamOptionsHtml = savedTeamOptions.join('');
                 
-                const optionsHtml = teamOptions.join('');
-                document.getElementById('gameTeam1Selection').innerHTML = optionsHtml;
-                document.getElementById('gameTeam2Selection').innerHTML = optionsHtml;
+                document.getElementById('gameTeam1SavedTeamSelect').innerHTML = savedTeamOptionsHtml;
+                document.getElementById('gameTeam2SavedTeamSelect').innerHTML = savedTeamOptionsHtml;
 
-                // Populate the new player select dropdowns
+                // Populate the player select dropdowns
                 document.getElementById('gameTeam1Player1Input').innerHTML = playerOptionsHtml;
                 document.getElementById('gameTeam1Player2Input').innerHTML = playerOptionsHtml;
                 document.getElementById('gameTeam2Player1Input').innerHTML = playerOptionsHtml;
@@ -1744,25 +1737,20 @@
             }
         }
 
-        function handleTeamSelection(teamPosition, value) {
-            if (!value) return;
+        function handleSavedTeamSelection(teamNumber, value) {
+            // Reset the dropdown to the default after selection
+            document.getElementById(`gameTeam${teamNumber}SavedTeamSelect`).value = "";
+            if (!value) return; // Do nothing if the default option was re-selected
             
-            const player1Input = document.getElementById(`game${teamPosition.charAt(0).toUpperCase() + teamPosition.slice(1)}Player1Input`);
-            const player2Input = document.getElementById(`game${teamPosition.charAt(0).toUpperCase() + teamPosition.slice(1)}Player2Input`);
+            const player1Input = document.getElementById(`gameTeam${teamNumber}Player1Input`);
+            const player2Input = document.getElementById(`gameTeam${teamNumber}Player2Input`);
             
-            if (value.startsWith('team:')) {
-                // Selected a team - auto-populate players
-                const teamId = value.split(':')[1];
-                const selectedTeam = teams.find(t => t.id === teamId);
-                if (selectedTeam) {
-                    player1Input.value = selectedTeam.player1;
-                    player2Input.value = selectedTeam.player2;
-                }
-            } else if (value.startsWith('player:')) {
-                // Selected an individual player - put in player 1 field
-                const playerName = value.split(':')[1];
-                player1Input.value = playerName;
-                player2Input.value = '';
+            const teamId = value.split(':')[1];
+            const selectedTeam = teams.find(t => t.id === teamId);
+            
+            if (selectedTeam) {
+                player1Input.value = selectedTeam.player1;
+                player2Input.value = selectedTeam.player2;
             }
         }
 
@@ -2260,8 +2248,12 @@
             document.getElementById('gameTeam1Player2Input').value = '';
             document.getElementById('gameTeam2Player1Input').value = '';
             document.getElementById('gameTeam2Player2Input').value = '';
-            document.getElementById('gameTeam1Selection').value = '';
-            document.getElementById('gameTeam2Selection').value = '';
+            if(document.getElementById('gameTeam1SavedTeamSelect')) {
+                document.getElementById('gameTeam1SavedTeamSelect').value = '';
+            }
+            if(document.getElementById('gameTeam2SavedTeamSelect')) {
+                document.getElementById('gameTeam2SavedTeamSelect').value = '';
+            }
             document.getElementById('player1Select').value = '';
             document.getElementById('player2Select').value = '';
             
@@ -2766,8 +2758,15 @@
             const stats1 = getOverallStats(select1Val, period);
             const stats2 = getOverallStats(select2Val, period);
 
-            const name1 = select1Val.startsWith('player:') ? select1Val.split(':')[1] : teams.find(t=>t.id===select1Val.split(':')[1]).player1 + ' & ' + teams.find(t=>t.id===select1Val.split(':')[1]).player2;
-            const name2 = select2Val.startsWith('player:') ? select2Val.split(':')[1] : teams.find(t=>t.id===select1Val.split(':')[1]).player1 + ' & ' + teams.find(t=>t.id===select1Val.split(':')[1]).player2;
+            const team1Obj = teams.find(t => t.id === select1Val.split(':')[1]);
+            const name1 = select1Val.startsWith('player:') 
+                ? select1Val.split(':')[1] 
+                : (team1Obj ? `${team1Obj.player1} & ${team1Obj.player2}` : 'Unknown Team');
+
+            const team2Obj = teams.find(t => t.id === select2Val.split(':')[1]);
+            const name2 = select2Val.startsWith('player:') 
+                ? select2Val.split(':')[1] 
+                : (team2Obj ? `${team2Obj.player1} & ${team2Obj.player2}` : 'Unknown Team');
 
             resultsDiv.innerHTML = `
                 <div class="grid grid-cols-2 gap-4 text-center mt-2">
