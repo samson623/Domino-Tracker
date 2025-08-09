@@ -3046,7 +3046,60 @@
 
         // Start the app
         initApp();
- 
+ <script>
+// HOTFIX: fail-open auth gate so app is usable on Vercel until OAuth is ready.
+(function(){
+  function hideOverlay(){
+    var o = document.getElementById('loginOverlay');
+    if (o) o.classList.add('hidden');          // remove the click blocker
+    window.__loginDisabled = true;             // tell UI that gate is disabled
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', hideOverlay);
+  } else {
+    hideOverlay();
+  }
+})();
+
+// Override overlay toggler to respect the hotfix flag
+window.updateLoginOverlay = function(forceHide){
+  var overlay = document.getElementById('loginOverlay');
+  if (!overlay) return;
+  if (forceHide || window.__loginDisabled) { overlay.classList.add('hidden'); return; }
+  var user = null;
+  try { user = JSON.parse(localStorage.getItem('dominoUser') || 'null'); } catch (_){}
+  if (user) overlay.classList.add('hidden'); else overlay.classList.remove('hidden');
+};
+
+// Wrap Google Identity init so it never blocks the app if not ready
+window.initializeGoogleSignIn = function(){
+  var hasGIS = !!(window.google && google.accounts && google.accounts.id);
+  var clientId = window.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID';
+  var hasClientId = clientId && clientId !== 'YOUR_GOOGLE_CLIENT_ID';
+
+  if (!hasGIS || !hasClientId) {
+    window.__loginDisabled = true;
+    window.updateLoginOverlay(true);           // keep app usable
+    return;
+  }
+
+  google.accounts.id.initialize({
+    client_id: clientId,
+    callback: handleCredentialResponse,
+    auto_select: false
+  });
+
+  var navBtn = document.getElementById('buttonDiv');
+  if (navBtn) google.accounts.id.renderButton(navBtn, { theme:'outline', size:'medium', width:200 });
+
+  var overlayBtn = document.getElementById('loginButtonContainer');
+  if (overlayBtn) google.accounts.id.renderButton(overlayBtn, { theme:'outline', size:'large', width:260 });
+};
+
+// Ensure overlay is hidden even if earlier code ran first
+window.updateLoginOverlay && window.updateLoginOverlay(true);
+</script>
+
     
 
 </body>
