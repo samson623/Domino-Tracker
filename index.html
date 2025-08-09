@@ -691,12 +691,6 @@
 
         <!-- Leaderboard Section -->
         <div id="leaderboardSection" class="section hidden">
-            <!-- Last Updated Time -->
-            <div class="mb-4 text-right text-sm text-gray-500 dark:text-gray-400">
-                <i class="fas fa-clock mr-1"></i>
-                Last updated: <span id="lastUpdatedTime"></span>
-            </div>
-            
             <div class="mb-6">
                 <div class="flex flex-wrap gap-2">
                     <button onclick="showLeaderboard('daily')" class="leaderboard-tab bg-blue-500 text-white py-2 px-4 rounded-lg font-medium">
@@ -722,7 +716,7 @@
                             <i class="fas fa-users mr-2 text-blue-500"></i>
                             Team Rankings
                         </span>
-                        <span id="teamPeriodInfo" class="text-xs text-gray-500 dark:text-gray-400"></span>
+                        <span id="teamPeriodInfo" class="text-sm font-normal text-gray-500 dark:text-gray-400"></span>
                     </h3>
                     <div id="teamRankings">
                         <!-- Dynamic content -->
@@ -736,7 +730,7 @@
                             <i class="fas fa-user mr-2 text-green-500"></i>
                             Top Players
                         </span>
-                        <span id="playerPeriodInfo" class="text-xs text-gray-500 dark:text-gray-400"></span>
+                        <span id="playerPeriodInfo" class="text-sm font-normal text-gray-500 dark:text-gray-400"></span>
                     </h3>
                     <div id="playerStats">
                         <!-- Dynamic content -->
@@ -1203,6 +1197,19 @@
             loadAchievements();
         }
 
+        function toggleVisibility(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                const isHidden = element.classList.contains('hidden');
+                element.classList.toggle('hidden');
+                
+                const icon = element.previousElementSibling.querySelector('i.fas');
+                if (icon) {
+                    icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+                }
+            }
+        }
+
         function loadTodaysPerformance() {
             const today = new Date().toDateString();
             const todayGames = games.filter(g => new Date(g.date).toDateString() === today);
@@ -1234,9 +1241,13 @@
                 const filteredTeamStats = Object.values(teamStats).filter(stat => stat.wins > 0 || stat.losses > 0);
 
                 if (filteredTeamStats.length > 0) {
-                    html += '<h4 class="font-bold mb-2 text-gray-700 dark:text-gray-300">Team Games</h4>';
+                    html += `<h4 onclick="toggleVisibility('todays-team-games')" class="font-bold mb-2 text-gray-700 dark:text-gray-300 cursor-pointer flex justify-between items-center">
+                                <span>Team Games</span>
+                                <i class="fas fa-chevron-down transition-transform"></i>
+                             </h4>
+                             <div id="todays-team-games" class="hidden pl-4 border-l-2 border-gray-200 dark:border-gray-600 space-y-2">`;
                     html += filteredTeamStats.map(stat => `
-                        <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mb-2">
+                        <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                             <span class="font-medium">${stat.name}</span>
                             <div class="flex items-center space-x-4">
                                 <span class="text-green-600 font-bold">+${stat.wins}</span>
@@ -1246,6 +1257,7 @@
                             </div>
                         </div>
                     `).join('');
+                    html += `</div>`;
                 }
             }
 
@@ -1266,9 +1278,13 @@
                 const filteredSingleStats = Object.values(singlePlayerStats).filter(stat => stat.wins > 0 || stat.losses > 0);
 
                 if (filteredSingleStats.length > 0) {
-                    html += '<h4 class="font-bold mt-4 mb-2 text-gray-700 dark:text-gray-300">One-on-One Games</h4>';
+                    html += `<h4 onclick="toggleVisibility('todays-single-games')" class="font-bold mt-4 mb-2 text-gray-700 dark:text-gray-300 cursor-pointer flex justify-between items-center">
+                                <span>One-on-One Games</span>
+                                <i class="fas fa-chevron-down transition-transform"></i>
+                             </h4>
+                             <div id="todays-single-games" class="hidden pl-4 border-l-2 border-gray-200 dark:border-gray-600 space-y-2">`;
                     html += filteredSingleStats.map(stat => `
-                        <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mb-2">
+                        <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                             <span class="font-medium">${stat.name}</span>
                             <div class="flex items-center space-x-4">
                                 <span class="text-green-600 font-bold">+${stat.wins}</span>
@@ -1278,6 +1294,7 @@
                             </div>
                         </div>
                     `).join('');
+                    html += `</div>`;
                 }
             }
 
@@ -1521,6 +1538,7 @@
                 () => {
                     games = games.filter(g => g.id != gameId);
                     localStorage.setItem('dominoGames', JSON.stringify(games));
+                    recalculateAllAchievements();
                     refreshAllData();
                     showToast('Game deleted successfully!');
                 }
@@ -1592,8 +1610,29 @@
             game.gameValue = game.isPetaroll ? 2 : 1;
 
             localStorage.setItem('dominoGames', JSON.stringify(games));
+            
+            recalculateAllAchievements();
+
             closeEditGameModal();
             refreshAllData();
+        }
+
+        function recalculateAllAchievements() {
+            // Reset achievements and streaks
+            achievements = {};
+            streaks = {};
+
+            // Sort games by date to process them in order
+            const sortedGames = [...games].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            // Re-check achievements for every game
+            sortedGames.forEach(game => {
+                checkAllAchievements(game);
+            });
+
+            // Save the recalculated achievements
+            localStorage.setItem('dominoAchievements', JSON.stringify(achievements));
+            localStorage.setItem('dominoStreaks', JSON.stringify(streaks));
         }
 
         function loadDailyPlayerSummary() {
@@ -1670,10 +1709,14 @@
             let summaryHtml = '';
             Object.keys(playerSummaries).sort().forEach(playerName => {
                 const summary = playerSummaries[playerName];
+                const sanitizedPlayerName = playerName.replace(/[^a-zA-Z0-9]/g, ''); // Create a safe ID
                 summaryHtml += `
                     <div>
-                        <h5 class="font-bold">${playerName} <span class="font-normal text-gray-600 dark:text-gray-400">(${summary.wins}W - ${summary.losses}L)</span></h5>
-                        <ul class="list-disc list-inside pl-2 mt-1 space-y-1">
+                        <h5 onclick="toggleVisibility('summary-${sanitizedPlayerName}')" class="font-bold cursor-pointer p-2 rounded-lg flex justify-between items-center">
+                            <span>${playerName} <span class="font-normal text-gray-600 dark:text-gray-400">(${summary.wins}W - ${summary.losses}L)</span></span>
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </h5>
+                        <ul id="summary-${sanitizedPlayerName}" class="list-disc list-inside pl-6 mt-1 space-y-1 hidden">
                             ${summary.games.join('')}
                         </ul>
                     </div>
@@ -2520,7 +2563,6 @@
 
         // Leaderboard section
         function loadLeaderboard() {
-            document.getElementById('lastUpdatedTime').textContent = new Date().toLocaleString();
             showLeaderboard('daily');
         }
 
@@ -2536,6 +2578,33 @@
             activeTab.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
             activeTab.classList.add('bg-blue-500', 'text-white');
             
+            let periodText = '';
+            const now = new Date();
+            const options = { month: 'long', day: 'numeric', year: 'numeric' };
+            const monthYearOptions = { month: 'long', year: 'numeric' };
+            const shortMonthDayOptions = { month: 'short', day: 'numeric' };
+
+            switch (period) {
+                case 'daily':
+                    periodText = `Today: ${now.toLocaleDateString('en-US', options)}`;
+                    break;
+                case 'weekly':
+                    const firstDayOfWeek = new Date(now);
+                    firstDayOfWeek.setDate(now.getDate() - now.getDay());
+                    const lastDayOfWeek = new Date(firstDayOfWeek);
+                    lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+                    periodText = `This Week: ${firstDayOfWeek.toLocaleDateString('en-US', shortMonthDayOptions)} - ${lastDayOfWeek.toLocaleDateString('en-US', shortMonthDayOptions)}`;
+                    break;
+                case 'monthly':
+                    periodText = `This Month: ${now.toLocaleDateString('en-US', monthYearOptions)}`;
+                    break;
+                case 'alltime':
+                    periodText = 'All Time';
+                    break;
+            }
+            document.getElementById('teamPeriodInfo').textContent = periodText;
+            document.getElementById('playerPeriodInfo').textContent = periodText;
+
             games = JSON.parse(localStorage.getItem('dominoGames')) || [];
             
             loadTeamRankings(period);
@@ -2892,17 +2961,19 @@
 
         function filterGamesByPeriod(games, period) {
             const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             
             switch (period) {
                 case 'daily':
-                    return games.filter(game => new Date(game.date) >= today);
+                    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    return games.filter(game => new Date(game.date) >= todayStart);
                 case 'weekly':
-                    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-                    return games.filter(game => new Date(game.date) >= weekAgo);
+                    const firstDayOfWeek = new Date(now);
+                    firstDayOfWeek.setDate(now.getDate() - now.getDay());
+                    firstDayOfWeek.setHours(0, 0, 0, 0);
+                    return games.filter(game => new Date(game.date) >= firstDayOfWeek);
                 case 'monthly':
-                    const monthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
-                    return games.filter(game => new Date(game.date) >= monthAgo);
+                    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                    return games.filter(game => new Date(game.date) >= firstDayOfMonth);
                 case 'alltime':
                 default:
                     return games;
